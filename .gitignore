@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.db
+.venv/
+venv/
+.pytest_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+playwright-report/
+test-results/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
