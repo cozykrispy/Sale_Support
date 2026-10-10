@@ -351,6 +351,41 @@ export default function SalesSupportHubPage() {
     }
   };
 
+  // Permanent Delete & Empty Trash
+  const [permanentDeleteTarget, setPermanentDeleteTarget] = useState<{
+    isOpen: boolean;
+    product?: Product;
+    isEmptyTrash?: boolean;
+  }>({ isOpen: false });
+
+  const handlePermanentDelete = async (product: Product) => {
+    try {
+      await apiFetch(`/api/products/${product.id}/permanent`, {
+        method: "DELETE",
+      });
+      showToast(`Permanently purged "${product.name}" from database.`);
+      setPermanentDeleteTarget({ isOpen: false });
+      await loadHubData();
+    } catch (err: unknown) {
+      setErrorBanner(
+        err instanceof Error ? err.message : "Failed to permanently delete product"
+      );
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    try {
+      await apiFetch(`/api/products/trash/empty`, { method: "DELETE" });
+      showToast(`All soft-deleted products permanently purged from trash.`);
+      setPermanentDeleteTarget({ isOpen: false });
+      await loadHubData();
+    } catch (err: unknown) {
+      setErrorBanner(
+        err instanceof Error ? err.message : "Failed to empty trash"
+      );
+    }
+  };
+
   const handleToggleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(filteredProducts.map((p) => p.id));
@@ -926,6 +961,21 @@ export default function SalesSupportHubPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                {catalogView === "trash" && trashProducts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPermanentDeleteTarget({
+                        isOpen: true,
+                        isEmptyTrash: true,
+                      })
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 text-xs font-semibold transition shadow-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Empty Trash ({trashProducts.length})
+                  </button>
+                )}
                 {selectedIds.length > 0 && catalogView === "active" && (
                   <button
                     type="button"
@@ -1078,16 +1128,33 @@ export default function SalesSupportHubPage() {
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {product.is_deleted ? (
-                      <button
-                        type="button"
-                        aria-label={`Restore ${product.name}`}
-                        data-testid={`restore-product-${product.name}`}
-                        onClick={() => handleRestoreProduct(product)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs transition shadow-xs"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>Restore</span>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          aria-label={`Restore ${product.name}`}
+                          data-testid={`restore-product-${product.name}`}
+                          onClick={() => handleRestoreProduct(product)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs transition shadow-xs"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Restore</span>
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Delete Permanently ${product.name}`}
+                          data-testid={`permanent-delete-product-${product.name}`}
+                          onClick={() =>
+                            setPermanentDeleteTarget({
+                              isOpen: true,
+                              product,
+                            })
+                          }
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-red-200 bg-white hover:bg-red-50 text-red-600 font-semibold text-xs transition shadow-xs"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                          <span>Delete Permanently</span>
+                        </button>
+                      </div>
                     ) : (
                       <>
                         <button
@@ -1532,6 +1599,79 @@ export default function SalesSupportHubPage() {
                 className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs transition"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Delete Confirmation Dialog */}
+      {permanentDeleteTarget.isOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4"
+          data-testid="permanent-delete-modal"
+        >
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-red-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">
+                  {permanentDeleteTarget.isEmptyTrash
+                    ? "Empty Trash Completely?"
+                    : "Permanently Delete Product?"}
+                </h3>
+                <p className="text-xs text-red-600 font-medium">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed mb-6">
+              {permanentDeleteTarget.isEmptyTrash ? (
+                <>
+                  Are you sure you want to permanently delete all{" "}
+                  <strong className="text-slate-900 font-semibold">
+                    {trashProducts.length} items
+                  </strong>{" "}
+                  from trash? These products and their data will be purged forever from the database.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to permanently delete{" "}
+                  <strong className="text-slate-900 font-semibold">
+                    &ldquo;{permanentDeleteTarget.product?.name}&rdquo;
+                  </strong>
+                  ? It will be completely removed from the database and cannot be recovered.
+                </>
+              )}
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPermanentDeleteTarget({ isOpen: false })}
+                className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                data-testid="confirm-permanent-delete-btn"
+                onClick={() => {
+                  if (permanentDeleteTarget.isEmptyTrash) {
+                    handleEmptyTrash();
+                  } else if (permanentDeleteTarget.product) {
+                    handlePermanentDelete(permanentDeleteTarget.product);
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition shadow-xs inline-flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {permanentDeleteTarget.isEmptyTrash
+                  ? "Yes, Empty Trash"
+                  : "Yes, Delete Permanently"}
               </button>
             </div>
           </div>

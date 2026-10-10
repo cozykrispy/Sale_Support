@@ -456,6 +456,49 @@ def restore_product(
     return product
 
 
+@app.delete(
+    "/api/products/{product_id}/permanent",
+    status_code=status.HTTP_200_OK,
+    tags=["Products"],
+)
+def delete_product_permanently(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Permanently delete a product from the database (Hard Delete - irreversible)."""
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+    db.delete(product)
+    db.commit()
+    return {
+        "message": "Product permanently deleted from database",
+        "deleted_id": product_id,
+        "permanent": True,
+    }
+
+
+@app.delete(
+    "/api/products/trash/empty",
+    status_code=status.HTTP_200_OK,
+    tags=["Products"],
+)
+def empty_trash(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Permanently purge all soft-deleted items currently in the trash."""
+    trash_items = db.query(Product).filter(Product.is_deleted == True).all()
+    count = len(trash_items)
+    for p in trash_items:
+        db.delete(p)
+    db.commit()
+    return {"message": f"Purged {count} item(s) from trash permanently", "purged_count": count}
+
+
 # ==========================================
 # 3. Protected AI Suggestion Routes (OpenRouter)
 # ==========================================

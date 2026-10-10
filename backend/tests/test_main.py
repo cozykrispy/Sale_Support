@@ -194,6 +194,14 @@ def test_product_crud_lifecycle():
     assert restore_res.json()["is_deleted"] is False
     assert len(client.get("/api/products", headers=headers).json()) == 4
 
+    # 6. Delete Permanently (Hard Delete)
+    perm_del_res = client.delete(f"/api/products/{prod_id}/permanent", headers=headers)
+    assert perm_del_res.status_code == 200
+    assert perm_del_res.json()["permanent"] is True
+
+    # Product is now permanently removed even with include_deleted=true
+    assert len(client.get("/api/products?include_deleted=true", headers=headers).json()) == 3
+
 
 def test_ai_product_suggestion_returns_three_pillars():
     """Verify AI suggestion returns Product Suggestions, Supporting Documents, and Cross-selling."""
