@@ -27,6 +27,9 @@ import {
   AlertCircle,
   Users,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import {
   apiFetch,
   clearAuthSession,
@@ -107,6 +110,7 @@ export default function SalesSupportHubPage() {
   // User Management State (Active / Inactive / Archived)
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [isUsersModalOpen, setIsUsersModalOpen] = useState<boolean>(false);
+  const [isShadcnShowcaseOpen, setIsShadcnShowcaseOpen] = useState<boolean>(false);
 
   // Feedback banner
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
@@ -442,6 +446,14 @@ export default function SalesSupportHubPage() {
             >
               <Users className="w-4 h-4 text-slate-700" />
               <span>Team Accounts</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsShadcnShowcaseOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100/70 text-indigo-900 font-semibold text-xs sm:text-sm transition shadow-2xs"
+            >
+              <Sparkles className="w-4 h-4 text-indigo-600" />
+              <span>shadcn/ui Demo</span>
             </button>
             {user && (
               <span className="font-normal text-slate-600">
@@ -1679,6 +1691,114 @@ export default function SalesSupportHubPage() {
                   ? "Yes, Empty Trash"
                   : "Yes, Delete Permanently"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SHADCN/UI LIVE COMPONENT SHOWCASE MODAL */}
+      {isShadcnShowcaseOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
+        >
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 p-6 sm:p-8 relative max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            <button
+              type="button"
+              aria-label="Close modal"
+              onClick={() => setIsShadcnShowcaseOpen(false)}
+              className="absolute right-5 top-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded">
+                  Official shadcn/ui Design System
+                </span>
+                <Badge variant="success">Installed in src/components/ui</Badge>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                shadcn/ui Component Sandbox
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                ทดลองเล่นและดู Components ของจริงที่ถูกติดตั้งในโปรเจกต์นี้
+              </p>
+            </div>
+
+            <div className="overflow-y-auto space-y-6 flex-1 pr-1">
+              {/* Section 1: Buttons */}
+              <div className="p-5 rounded-2xl border border-slate-200/90 bg-slate-50/50 space-y-3">
+                <div className="text-sm font-bold text-slate-900">
+                  1. Button Variants & Sizes (cva + Radix Slot)
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Button variant="default">Default (Slate-900)</Button>
+                  <Button variant="outline">Outline</Button>
+                  <Button variant="secondary">Secondary</Button>
+                  <Button variant="destructive">
+                    <Trash2 className="w-4 h-4 mr-1.5" />
+                    Destructive
+                  </Button>
+                  <Button variant="ghost">Ghost</Button>
+                  <Button variant="outline" size="sm">Small</Button>
+                  <Button variant="default" size="lg">Large</Button>
+                </div>
+              </div>
+
+              {/* Section 2: Badges */}
+              <div className="p-5 rounded-2xl border border-slate-200/90 bg-slate-50/50 space-y-3">
+                <div className="text-sm font-bold text-slate-900">
+                  2. Badges (Color Tokens & Status)
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="default">Default</Badge>
+                  <Badge variant="secondary">Secondary</Badge>
+                  <Badge variant="outline">Outline</Badge>
+                  <Badge variant="success">🟢 Active (Success)</Badge>
+                  <Badge variant="warning">🟡 Inactive (Warning)</Badge>
+                  <Badge variant="info">🔵 95% Match (Info)</Badge>
+                  <Badge variant="destructive">🔴 Deleted</Badge>
+                </div>
+              </div>
+
+              {/* Section 3: Cards */}
+              <div className="p-5 rounded-2xl border border-slate-200/90 bg-slate-50/50 space-y-3">
+                <div className="text-sm font-bold text-slate-900">
+                  3. Card Structure (Compound Component)
+                </div>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>DynaChrom Analytical System</CardTitle>
+                      <Badge variant="success">Active</Badge>
+                    </div>
+                    <CardDescription>
+                      High-precision HPLC column designed for pharmaceutical validation.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-sm text-slate-600">
+                    นี่คือตัวอย่าง Card ของ shadcn/ui ที่แยก sub-components ชัดเจน 
+                    สามารถประกอบ Content ได้ยืดหยุ่นโดยไม่ต้องแก้ CSS ภายนอกเลย
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Section 4: What makes shadcn special */}
+              <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/60 text-xs sm:text-sm text-indigo-900 leading-relaxed">
+                <strong className="font-semibold block mb-1">💡 โครงสร้างโค้ด:</strong>
+                ไฟล์ทั้งหมดอยู่ที่ <code className="bg-white/80 px-1.5 py-0.5 rounded font-mono text-xs">src/components/ui/</code> ของเราเอง 100% 
+                ไม่มี npm lock-in, รองรับ Keyboard a11y อัตโนมัติ และปรับแต่งด้วย Tailwind ได้ทันทีครับ
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500 mt-3">
+              <span>Ready for production</span>
+              <Button onClick={() => setIsShadcnShowcaseOpen(false)}>
+                Close Showcase
+              </Button>
             </div>
           </div>
         </div>
