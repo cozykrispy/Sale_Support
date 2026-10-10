@@ -58,12 +58,17 @@ class ProductBase(BaseModel):
     category: str = Field(..., min_length=1, max_length=150, description="Category *")
     type: str = Field(..., min_length=1, max_length=150, description="Type *")
     sub_type: str = Field(..., min_length=1, max_length=150, description="Sub Type *")
+    status: str = Field(default="active", description="Product status: 'active', 'inactive', 'archived'")
     supporting_documents: Optional[List[SupportingDocItem]] = Field(default_factory=list)
     cross_sell_products: Optional[List[CrossSellItem]] = Field(default_factory=list)
 
 
 class ProductCreate(ProductBase):
     pass
+
+
+class ProductStatusUpdate(BaseModel):
+    status: str = Field(..., pattern="^(active|inactive|archived)$", description="New status ('active', 'inactive', 'archived')")
 
 
 class ProductUpdate(BaseModel):
@@ -74,6 +79,7 @@ class ProductUpdate(BaseModel):
     category: Optional[str] = Field(None, min_length=1, max_length=150)
     type: Optional[str] = Field(None, min_length=1, max_length=150)
     sub_type: Optional[str] = Field(None, min_length=1, max_length=150)
+    status: Optional[str] = Field(None, pattern="^(active|inactive|archived)$")
     supporting_documents: Optional[List[SupportingDocItem]] = None
     cross_sell_products: Optional[List[CrossSellItem]] = None
 

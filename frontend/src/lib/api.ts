@@ -38,6 +38,7 @@ export interface Product {
   category: string;
   type: string;
   sub_type: string;
+  status?: "active" | "inactive" | "archived";
   supporting_documents?: SupportingDoc[];
   cross_sell_products?: CrossSellItem[];
   is_deleted?: boolean;
@@ -54,6 +55,7 @@ export interface ProductCreatePayload {
   category: string;
   type: string;
   sub_type: string;
+  status?: "active" | "inactive" | "archived";
 }
 
 export interface SuggestedProductResult {

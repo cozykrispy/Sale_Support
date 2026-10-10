@@ -26,6 +26,7 @@ class Product(Base):
     category = Column(String(150), nullable=False, index=True)
     type = Column(String(150), nullable=False)
     sub_type = Column(String(150), nullable=False)
+    status = Column(String(50), default="active", nullable=False, index=True)
     supporting_documents = Column(JSON, default=list, nullable=False)
     cross_sell_products = Column(JSON, default=list, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False, index=True)

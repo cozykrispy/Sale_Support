@@ -16,6 +16,7 @@ from app.schemas import (
     TokenResponse,
     ProductCreate,
     ProductUpdate,
+    ProductStatusUpdate,
     ProductResponse,
     AISuggestRequest,
     AISuggestResponse,
@@ -196,6 +197,9 @@ def list_products(
         None, description="Search by product name, brand, or description"
     ),
     category: Optional[str] = Query(None, description="Filter by category"),
+    status_filter: Optional[str] = Query(
+        None, alias="status", description="Filter by status ('active', 'inactive', 'archived')"
+    ),
     include_deleted: bool = Query(
         False, description="Whether to include soft-deleted products"
     ),
@@ -208,6 +212,8 @@ def list_products(
         query = query.filter(Product.is_deleted == False)
     if category and category != "All Categories":
         query = query.filter(Product.category == category)
+    if status_filter and status_filter != "All Statuses":
+        query = query.filter(Product.status == status_filter)
     if search:
         pattern = f"%{search}%"
         query = query.filter(
@@ -325,6 +331,29 @@ def update_product(
     return product
 
 
+@app.patch(
+    "/api/products/{product_id}/status",
+    response_model=ProductResponse,
+    tags=["Products"],
+)
+def update_product_status(
+    product_id: int,
+    payload: ProductStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Quickly update product lifecycle status ('active', 'inactive', 'archived')."""
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+    product.status = payload.status
+    db.commit()
+    db.refresh(product)
+    return product
+
+
 @app.delete(
     "/api/products/{product_id}",
     status_code=status.HTTP_200_OK,
@@ -393,7 +422,7 @@ async def ai_suggest_products(
     """
     products = (
         db.query(Product)
-        .filter(Product.is_deleted == False)
+        .filter(Product.is_deleted == False, Product.status == "active")
         .order_by(Product.id.asc())
         .all()
     )
@@ -448,14 +477,20 @@ def get_analytics(
     total_docs = 0
     total_cross_sells = 0
 
+    status_counts = {"active": 0, "inactive": 0, "archived": 0}
     for p in products:
         categories[p.category] = categories.get(p.category, 0) + 1
         brands[p.brand] = brands.get(p.brand, 0) + 1
         total_docs += len(p.supporting_documents or [])
         total_cross_sells += len(p.cross_sell_products or [])
+        st = getattr(p, "status", "active") or "active"
+        status_counts[st] = status_counts.get(st, 0) + 1
 
     return {
         "total_products": len(products),
+        "total_active": status_counts.get("active", 0),
+        "total_inactive": status_counts.get("inactive", 0),
+        "total_archived_status": status_counts.get("archived", 0),
         "total_searches": history_count,
         "total_supporting_documents": total_docs,
         "total_cross_sell_links": total_cross_sells,

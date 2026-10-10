@@ -68,6 +68,7 @@ const EMPTY_FORM: ProductCreatePayload = {
   category: "",
   type: "",
   sub_type: "",
+  status: "active",
 };
 
 export default function SalesSupportHubPage() {
@@ -92,6 +93,7 @@ export default function SalesSupportHubPage() {
   const [catalogSearch, setCatalogSearch] = useState<string>("");
   const [selectedCategory, setSelectedCategory] =
     useState<string>("All Categories");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All Statuses");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -200,14 +202,34 @@ export default function SalesSupportHubPage() {
   const filteredProducts = currentCatalogList.filter((p) => {
     const matchesCategory =
       selectedCategory === "All Categories" || p.category === selectedCategory;
+    const matchesStatus =
+      selectedStatus === "All Statuses" || (p.status || "active") === selectedStatus;
     const q = catalogSearch.trim().toLowerCase();
     const matchesSearch =
       !q ||
       p.name.toLowerCase().includes(q) ||
       p.brand.toLowerCase().includes(q) ||
       p.description.toLowerCase().includes(q);
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesStatus && matchesSearch;
   });
+
+  const handleQuickStatusChange = async (
+    product: Product,
+    newStatus: "active" | "inactive" | "archived"
+  ) => {
+    try {
+      await apiFetch<Product>(`/api/products/${product.id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: newStatus }),
+      });
+      showToast(`Updated "${product.name}" status to ${newStatus.toUpperCase()}`);
+      await loadHubData();
+    } catch (err: unknown) {
+      setErrorBanner(
+        err instanceof Error ? err.message : "Failed to update product status"
+      );
+    }
+  };
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -226,6 +248,7 @@ export default function SalesSupportHubPage() {
       category: product.category,
       type: product.type,
       sub_type: product.sub_type,
+      status: product.status || "active",
     });
     setErrorBanner(null);
     setIsModalOpen(true);
@@ -894,19 +917,33 @@ export default function SalesSupportHubPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-slate-400" />
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                  <select
+                    aria-label="Filter by category"
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <select
-                  aria-label="Filter by category"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  aria-label="Filter by status"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
                   className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
+                  <option value="All Statuses">All Statuses</option>
+                  <option value="active">🟢 Active Only</option>
+                  <option value="inactive">🟡 Inactive Only</option>
+                  <option value="archived">⚪ Archived Only</option>
                 </select>
               </div>
             </div>
@@ -963,6 +1000,28 @@ export default function SalesSupportHubPage() {
                         <span className="text-xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium">
                           {product.category}
                         </span>
+                        {/* Status Badge & Quick Switch */}
+                        <select
+                          aria-label={`Change status of ${product.name}`}
+                          value={product.status || "active"}
+                          onChange={(e) =>
+                            handleQuickStatusChange(
+                              product,
+                              e.target.value as "active" | "inactive" | "archived"
+                            )
+                          }
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border cursor-pointer focus:outline-none transition ${
+                            (product.status || "active") === "active"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                              : (product.status || "active") === "inactive"
+                              ? "bg-amber-50 text-amber-700 border-amber-300"
+                              : "bg-slate-100 text-slate-600 border-slate-300"
+                          }`}
+                        >
+                          <option value="active">🟢 Active</option>
+                          <option value="inactive">🟡 Inactive</option>
+                          <option value="archived">⚪ Archived</option>
+                        </select>
                       </div>
                       <p className="text-xs text-slate-600 mt-1 line-clamp-2">
                         {product.description}
@@ -1284,6 +1343,31 @@ export default function SalesSupportHubPage() {
                     className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
                   />
                 </div>
+              </div>
+
+              {/* Row 5: Status * */}
+              <div>
+                <label
+                  htmlFor="product-status"
+                  className="block text-xs font-semibold text-slate-800 mb-1"
+                >
+                  Status (วงจรชีวิตสินค้า) *
+                </label>
+                <select
+                  id="product-status"
+                  value={formData.status || "active"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      status: e.target.value as "active" | "inactive" | "archived",
+                    })
+                  }
+                  className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                >
+                  <option value="active">🟢 Active (เปิดขาย / AI แนะนำลูกค้าได้)</option>
+                  <option value="inactive">🟡 Inactive (พักการขายชั่วคราว / AI ไม่นำไปแนะนำ)</option>
+                  <option value="archived">⚪ Archived (จัดเก็บ / เลิกผลิต Discontinued)</option>
+                </select>
               </div>
 
               {/* Modal Actions: Cancel | Create Product */}
