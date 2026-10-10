@@ -413,18 +413,18 @@ export default function SalesSupportHubPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eef2fb] pb-16">
+    <div className="min-h-screen bg-[#f8fafc] pb-20">
       {/* Top User Session Bar */}
-      <div className="bg-white/80 backdrop-blur border-b border-slate-200 px-6 py-2.5">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+      <div className="bg-white border-b border-slate-200/80 px-6 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sticky top-0 z-40 backdrop-blur-md bg-white/95">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-slate-600">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 font-medium text-slate-800">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               Protected Route (JWT Active)
             </span>
             {expiresAt && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-slate-500">
-                <Clock className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-slate-500 font-medium">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
                 Expires:{" "}
                 {new Date(expiresAt).toLocaleTimeString([], {
                   hour: "2-digit",
@@ -438,25 +438,25 @@ export default function SalesSupportHubPage() {
             <button
               type="button"
               onClick={handleOpenUsersModal}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-medium transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-medium text-xs sm:text-sm transition shadow-2xs"
             >
-              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <Users className="w-4 h-4 text-slate-700" />
               <span>Team Accounts</span>
             </button>
             {user && (
-              <span>
+              <span className="font-normal text-slate-600">
                 Signed in as{" "}
-                <strong className="text-slate-900">{user.username}</strong> (
-                {user.email})
+                <strong className="text-slate-900 font-semibold">{user.username}</strong>
+                <span className="hidden md:inline text-slate-400"> ({user.email})</span>
               </span>
             )}
             <button
               type="button"
               onClick={handleLogout}
               data-testid="logout-button"
-              className="inline-flex items-center gap-1 text-slate-700 hover:text-red-600 font-medium transition"
+              className="inline-flex items-center gap-1.5 text-slate-600 hover:text-red-600 font-medium transition"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4" />
               Logout
             </button>
           </div>
@@ -464,12 +464,12 @@ export default function SalesSupportHubPage() {
       </div>
 
       {/* Main Header & Navigation Tabs (Matches Figure 2 & Figure 3) */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
-        <header className="text-center mb-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10">
+        <header className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Sales Support Hub
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-slate-600">
+          <p className="mt-2 text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
             AI-powered product search, model-aware recommendations, and portfolio
             management—built for fast, customer-ready answers.
           </p>
@@ -478,7 +478,7 @@ export default function SalesSupportHubPage() {
         {/* Top 3 Segmented Tabs */}
         <div
           role="tablist"
-          className="grid grid-cols-3 bg-slate-200/80 p-1 rounded-xl mb-6 border border-slate-300/60"
+          className="grid grid-cols-3 bg-slate-200/70 p-1.5 rounded-2xl mb-8 border border-slate-300/40"
         >
           <button
             type="button"
@@ -486,10 +486,10 @@ export default function SalesSupportHubPage() {
             aria-selected={activeTab === "search"}
             data-testid="tab-product-search"
             onClick={() => setActiveTab("search")}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition ${
+            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm sm:text-base font-semibold transition ${
               activeTab === "search"
                 ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-700 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Search className="w-4 h-4" />
@@ -502,10 +502,10 @@ export default function SalesSupportHubPage() {
             aria-selected={activeTab === "manage"}
             data-testid="tab-manage-products"
             onClick={() => setActiveTab("manage")}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition ${
+            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm sm:text-base font-semibold transition ${
               activeTab === "manage"
                 ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-700 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Package className="w-4 h-4" />
@@ -518,10 +518,10 @@ export default function SalesSupportHubPage() {
             aria-selected={activeTab === "analytics"}
             data-testid="tab-analytics-dashboard"
             onClick={() => setActiveTab("analytics")}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition ${
+            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm sm:text-base font-semibold transition ${
               activeTab === "analytics"
                 ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-700 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -564,57 +564,57 @@ export default function SalesSupportHubPage() {
         {/* ============================================================ */}
         {activeTab === "search" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-6">
-              <div className="mb-5">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
                   <Search className="w-5 h-5 text-slate-800" />
                   <span>AI-Powered Product Search</span>
                 </h2>
-                <p className="text-sm text-slate-500 mt-0.5">
+                <p className="text-sm sm:text-base text-slate-500 mt-1">
                   Use natural language to find products, select a model for
                   inference, and export results with AI reasoning
                 </p>
               </div>
 
               {/* Search Mode + Model + History + Templates Controls Row */}
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setSearchMode("quick")}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition ${
                       searchMode === "quick"
-                        ? "bg-white text-slate-900 shadow-sm"
+                        ? "bg-white text-slate-900 shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <Search className="w-3.5 h-3.5" />
+                    <Search className="w-4 h-4" />
                     Quick Search
                   </button>
                   <button
                     type="button"
                     onClick={() => setSearchMode("detailed")}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition ${
                       searchMode === "detailed"
-                        ? "bg-white text-slate-900 shadow-sm"
+                        ? "bg-white text-slate-900 shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <SlidersHorizontal className="w-4 h-4" />
                     Detailed Search
                   </button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <label htmlFor="model-select" className="font-medium">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <label htmlFor="model-select" className="font-semibold text-xs sm:text-sm">
                       Model:
                     </label>
                     <select
                       id="model-select"
                       value={selectedModel}
                       onChange={(e) => setSelectedModel(e.target.value)}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
                     >
                       <option value="Auto (default)">Auto (default)</option>
                       <option value="google/gemini-2.0-flash-exp:free">
@@ -638,9 +638,9 @@ export default function SalesSupportHubPage() {
                       setShowHistoryDrawer((v) => !v);
                       setShowTemplatesMenu(false);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 transition shadow-2xs"
                   >
-                    <History className="w-3.5 h-3.5" />
+                    <History className="w-4 h-4 text-slate-500" />
                     History ({historyList.length})
                   </button>
 
@@ -650,9 +650,9 @@ export default function SalesSupportHubPage() {
                       setShowTemplatesMenu((v) => !v);
                       setShowHistoryDrawer(false);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 transition shadow-2xs"
                   >
-                    <BookTemplate className="w-3.5 h-3.5" />
+                    <BookTemplate className="w-4 h-4 text-slate-500" />
                     Templates
                   </button>
                 </div>
@@ -660,11 +660,11 @@ export default function SalesSupportHubPage() {
 
               {/* Optional Templates Popover */}
               {showTemplatesMenu && (
-                <div className="mb-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
-                  <div className="text-xs font-semibold text-slate-700 mb-2">
+                <div className="mb-5 rounded-2xl bg-slate-50/90 border border-slate-200 p-4">
+                  <div className="text-sm font-bold text-slate-800 mb-2.5">
                     Select a Sales Scenario Template:
                   </div>
-                  <div className="grid sm:grid-cols-3 gap-2">
+                  <div className="grid sm:grid-cols-3 gap-3">
                     {SEARCH_TEMPLATES.map((tpl) => (
                       <button
                         key={tpl.label}
@@ -673,12 +673,12 @@ export default function SalesSupportHubPage() {
                           setCustomerQuery(tpl.query);
                           setShowTemplatesMenu(false);
                         }}
-                        className="text-left p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 transition"
+                        className="text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-slate-400 transition shadow-2xs"
                       >
-                        <div className="text-xs font-bold text-slate-800">
+                        <div className="text-sm font-bold text-slate-900">
                           {tpl.label}
                         </div>
-                        <div className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
+                        <div className="text-xs text-slate-600 line-clamp-2 mt-1 leading-relaxed">
                           {tpl.query}
                         </div>
                       </button>
@@ -689,8 +689,8 @@ export default function SalesSupportHubPage() {
 
               {/* Optional History Drawer */}
               {showHistoryDrawer && (
-                <div className="mb-4 rounded-xl bg-slate-50 border border-slate-200 p-3 max-h-52 overflow-y-auto">
-                  <div className="text-xs font-semibold text-slate-700 mb-2">
+                <div className="mb-5 rounded-2xl bg-slate-50/90 border border-slate-200 p-4 max-h-56 overflow-y-auto">
+                  <div className="text-sm font-bold text-slate-800 mb-2.5">
                     Recent Search History:
                   </div>
                   <div className="space-y-2">
@@ -702,12 +702,12 @@ export default function SalesSupportHubPage() {
                           setCustomerQuery(item.query);
                           setShowHistoryDrawer(false);
                         }}
-                        className="w-full text-left p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 flex items-center justify-between gap-2"
+                        className="w-full text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-slate-400 flex items-center justify-between gap-3 shadow-2xs"
                       >
-                        <span className="text-xs text-slate-800 truncate">
+                        <span className="text-sm text-slate-800 truncate font-medium">
                           {item.query}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">
+                        <span className="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-medium shrink-0">
                           {item.model_used}
                         </span>
                       </button>
@@ -724,13 +724,13 @@ export default function SalesSupportHubPage() {
                   value={customerQuery}
                   onChange={(e) => setCustomerQuery(e.target.value)}
                   placeholder="Describe what your customer needs..."
-                  className="w-full rounded-xl bg-slate-100/80 border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
+                  className="w-full rounded-xl bg-slate-50/80 border border-slate-200 px-4.5 py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                 />
                 <button
                   type="submit"
                   data-testid="find-products-button"
                   disabled={isSearching}
-                  className="mt-3 w-full py-2.5 px-4 rounded-xl bg-slate-600 hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition disabled:opacity-50"
+                  className="mt-3.5 w-full py-3 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2 transition shadow-xs disabled:opacity-50"
                 >
                   <Search className="w-4 h-4" />
                   <span>
@@ -747,68 +747,68 @@ export default function SalesSupportHubPage() {
                 className="space-y-6 animate-fadeIn"
               >
                 {/* Executive Summary Bar */}
-                <div className="bg-white rounded-2xl shadow-sm border border-indigo-200 p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                    <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full">
-                      <Sparkles className="w-3.5 h-3.5" />
+                <div className="bg-white rounded-2xl shadow-xs border border-indigo-200/80 p-6 sm:p-7">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3.5 py-1.5 rounded-full border border-indigo-100">
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
                       AI Sales Specialist Reasoning ({aiResult.model_used})
                     </div>
                     <button
                       type="button"
                       onClick={handleExportResults}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5"
+                      className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl px-3.5 py-2 hover:bg-slate-50 transition shadow-2xs"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-4 h-4" />
                       Export Results
                     </button>
                   </div>
-                  <p className="text-sm text-slate-700 leading-relaxed">
+                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
                     {aiResult.executive_summary}
                   </p>
                 </div>
 
                 {/* Feature 1: Product Suggestion */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                <div className="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 sm:p-7">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 flex items-center gap-2.5">
                     <Package className="w-5 h-5 text-amber-600" />
                     1. Product Suggestion (แนะนำผลิตภัณฑ์ที่เหมาะสม)
                   </h3>
-                  <p className="text-xs text-slate-500 mb-4">
+                  <p className="text-sm text-slate-500 mb-5">
                     Suggests optimal products from the catalog based on customer
                     search input
                   </p>
 
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid md:grid-cols-3 gap-5">
                     {aiResult.suggested_products.map((prod, idx) => (
                       <div
                         key={`${prod.name}-${idx}`}
-                        className="rounded-xl border border-slate-200 p-4 flex flex-col justify-between bg-slate-50/50"
+                        className="rounded-2xl border border-slate-200/80 p-5 flex flex-col justify-between bg-slate-50/50 hover:bg-white hover:border-slate-300 transition shadow-2xs"
                       >
                         <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                          <div className="flex items-start justify-between gap-2 mb-2.5">
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                               {prod.match_score}% Match
                             </span>
-                            <span className="text-[11px] font-medium text-slate-500">
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                               {prod.brand}
                             </span>
                           </div>
-                          <h4 className="font-bold text-slate-900 text-sm">
+                          <h4 className="font-bold text-slate-900 text-base">
                             {prod.name}
                           </h4>
-                          <div className="text-[11px] text-indigo-700 font-medium mt-0.5 mb-2">
+                          <div className="text-xs sm:text-sm text-indigo-700 font-semibold mt-1 mb-2.5">
                             {prod.category} • {prod.sub_type}
                           </div>
-                          <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                          <p className="text-sm text-slate-600 leading-relaxed mb-4">
                             {prod.reasoning}
                           </p>
                         </div>
 
                         {prod.key_benefits && prod.key_benefits.length > 0 && (
-                          <ul className="space-y-1 border-t border-slate-200/80 pt-2.5 text-[11px] text-slate-600">
+                          <ul className="space-y-1.5 border-t border-slate-200/80 pt-3 text-xs sm:text-sm text-slate-600">
                             {prod.key_benefits.map((b, i) => (
-                              <li key={i} className="flex items-start gap-1.5">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                              <li key={i} className="flex items-start gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                                 <span>{b}</span>
                               </li>
                             ))}
@@ -822,33 +822,33 @@ export default function SalesSupportHubPage() {
                 {/* Feature 2 & Feature 3 Grid: Supporting Documents & Cross-selling */}
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Feature 2: Supporting Documents */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                  <div className="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 sm:p-7">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 flex items-center gap-2.5">
                       <FileText className="w-5 h-5 text-orange-600" />
                       2. Supporting Documents (เอกสารอ้างอิง & Validation)
                     </h3>
-                    <p className="text-xs text-slate-500 mb-4">
+                    <p className="text-sm text-slate-500 mb-5">
                       Recommends publications and validation reports to build
                       customer confidence
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-3.5">
                       {aiResult.supporting_documents.map((doc, idx) => (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-xl bg-orange-50/40 border border-orange-200/70"
+                          className="p-4 sm:p-5 rounded-2xl bg-orange-50/30 border border-orange-200/80 shadow-2xs"
                         >
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-orange-100 text-orange-800">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <span className="text-xs font-bold uppercase px-2.5 py-1 rounded-md bg-orange-100 text-orange-800">
                               {doc.doc_type}
                             </span>
-                            <span className="text-[11px] font-medium text-slate-600">
+                            <span className="text-xs font-semibold text-slate-600">
                               For: {doc.related_product}
                             </span>
                           </div>
-                          <div className="text-xs font-bold text-slate-900">
+                          <div className="text-sm sm:text-base font-bold text-slate-900 mt-1">
                             {doc.title}
                           </div>
-                          <p className="text-xs text-slate-600 mt-1">
+                          <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
                             {doc.relevance}
                           </p>
                         </div>
@@ -857,33 +857,33 @@ export default function SalesSupportHubPage() {
                   </div>
 
                   {/* Feature 3: Cross-selling */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                  <div className="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 sm:p-7">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 flex items-center gap-2.5">
                       <GitBranchPlus className="w-5 h-5 text-rose-600" />
                       3. Cross-selling (สินค้าพ่วงที่ควรเสนอขายคู่กัน)
                     </h3>
-                    <p className="text-xs text-slate-500 mb-4">
+                    <p className="text-sm text-slate-500 mb-5">
                       Identifies related products and consumables for
                       cross-selling
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-3.5">
                       {aiResult.cross_selling.map((cs, idx) => (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-xl bg-rose-50/40 border border-rose-200/70"
+                          className="p-4 sm:p-5 rounded-2xl bg-rose-50/30 border border-rose-200/80 shadow-2xs"
                         >
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-rose-100 text-rose-800">
                               {cs.category}
                             </span>
-                            <span className="text-[11px] font-medium text-slate-600">
+                            <span className="text-xs font-semibold text-slate-600">
                               Pair with: {cs.paired_with}
                             </span>
                           </div>
-                          <div className="text-xs font-bold text-slate-900">
+                          <div className="text-sm sm:text-base font-bold text-slate-900 mt-1">
                             {cs.product_name}
                           </div>
-                          <p className="text-xs text-slate-600 mt-1">
+                          <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
                             {cs.pitch_reason}
                           </p>
                         </div>
@@ -900,24 +900,24 @@ export default function SalesSupportHubPage() {
         {/* TAB 2: MANAGE PRODUCTS (Matches Figure 3 Exactly)            */}
         {/* ============================================================ */}
         {activeTab === "manage" && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 sm:p-8">
             <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
                 <Package className="w-5 h-5 text-slate-800" />
                 <span>Product Portfolio Management</span>
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              <p className="text-sm sm:text-base text-slate-500 mt-1">
                 Add, edit, and curate your catalog to improve recommendation
                 quality
               </p>
             </div>
 
             {/* Catalog Header Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+              <div className="flex flex-wrap items-center gap-3.5">
                 <h3
                   data-testid="catalog-count-heading"
-                  className="text-sm sm:text-base font-bold text-slate-900"
+                  className="text-base sm:text-lg font-bold text-slate-900"
                 >
                   Product Catalog ({filteredProducts.length} of{" "}
                   {catalogView === "active"
@@ -927,16 +927,16 @@ export default function SalesSupportHubPage() {
                 </h3>
 
                 {/* Active vs Trash View Toggle */}
-                <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs">
+                <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-sm">
                   <button
                     type="button"
                     onClick={() => {
                       setCatalogView("active");
                       setSelectedIds([]);
                     }}
-                    className={`px-3 py-1 rounded-md font-medium transition ${
+                    className={`px-3.5 py-1.5 rounded-lg font-semibold transition ${
                       catalogView === "active"
-                        ? "bg-white text-slate-900 shadow-sm font-semibold"
+                        ? "bg-white text-slate-900 shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
@@ -948,19 +948,19 @@ export default function SalesSupportHubPage() {
                       setCatalogView("trash");
                       setSelectedIds([]);
                     }}
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-md font-medium transition ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition ${
                       catalogView === "trash"
-                        ? "bg-white text-rose-700 shadow-sm font-semibold"
+                        ? "bg-white text-rose-700 shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <Archive className="w-3 h-3" />
+                    <Archive className="w-3.5 h-3.5" />
                     Trash ({trashProducts.length})
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {catalogView === "trash" && trashProducts.length > 0 && (
                   <button
                     type="button"
@@ -970,9 +970,9 @@ export default function SalesSupportHubPage() {
                         isEmptyTrash: true,
                       })
                     }
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 text-xs font-semibold transition shadow-xs"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-700 px-3.5 py-2 text-xs sm:text-sm font-semibold transition shadow-2xs"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                     Empty Trash ({trashProducts.length})
                   </button>
                 )}
@@ -980,9 +980,9 @@ export default function SalesSupportHubPage() {
                   <button
                     type="button"
                     onClick={handleBulkDelete}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-2 text-xs font-semibold transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 text-xs sm:text-sm font-semibold transition shadow-xs"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                     Move Selected to Trash ({selectedIds.length})
                   </button>
                 )}
@@ -990,7 +990,7 @@ export default function SalesSupportHubPage() {
                   type="button"
                   data-testid="add-product-button"
                   onClick={openAddModal}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-semibold transition"
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold transition shadow-xs"
                 >
                   <Plus className="w-4 h-4" />
                   Add Product
@@ -999,26 +999,26 @@ export default function SalesSupportHubPage() {
             </div>
 
             {/* Search & Filter Row */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 mb-5">
               <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
                   placeholder="Search products by name, brand, or description..."
-                  className="w-full rounded-lg bg-slate-100 border border-slate-200 pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
                   <select
                     aria-label="Filter by category"
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    className="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -1032,7 +1032,7 @@ export default function SalesSupportHubPage() {
                   aria-label="Filter by status"
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 >
                   <option value="All Statuses">All Statuses</option>
                   <option value="active">🟢 Active Only</option>
@@ -1043,7 +1043,7 @@ export default function SalesSupportHubPage() {
             </div>
 
             {/* Select All Checkbox */}
-            <div className="flex items-center gap-2 mb-3 text-xs text-slate-600 px-1">
+            <div className="flex items-center gap-2.5 mb-4 text-sm font-medium text-slate-600 px-1">
               <input
                 id="select-all-products"
                 type="checkbox"
@@ -1052,7 +1052,7 @@ export default function SalesSupportHubPage() {
                   selectedIds.length === filteredProducts.length
                 }
                 onChange={(e) => handleToggleSelectAll(e.target.checked)}
-                className="rounded border-slate-300"
+                className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
               />
               <label htmlFor="select-all-products" className="cursor-pointer">
                 Select all visible products
@@ -1060,14 +1060,14 @@ export default function SalesSupportHubPage() {
             </div>
 
             {/* Product List Cards (Matches Figure 3) */}
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
                   data-testid={`product-card-${product.id}`}
-                  className="rounded-xl border border-slate-200 p-4 flex items-start justify-between gap-4 hover:border-slate-300 transition bg-white"
+                  className="rounded-2xl border border-slate-200/80 p-5 flex items-start justify-between gap-4 hover:border-slate-300 hover:shadow-xs transition bg-white"
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-4">
                     <input
                       type="checkbox"
                       aria-label={`Select ${product.name}`}
@@ -1081,17 +1081,23 @@ export default function SalesSupportHubPage() {
                           );
                         }
                       }}
-                      className="mt-1 rounded border-slate-300"
+                      className="mt-1 w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
                     />
+
+                    {/* Product Icon / Thumbnail Avatar */}
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200/80 flex items-center justify-center shrink-0 text-slate-600">
+                      <Package className="w-6 h-6 text-slate-700" />
+                    </div>
+
                     <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-bold text-slate-900 text-sm">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h4 className="font-bold text-slate-900 text-base sm:text-lg">
                           {product.name}
                         </h4>
-                        <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700">
                           {product.brand}
                         </span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium">
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700">
                           {product.category}
                         </span>
                         {/* Status Badge & Quick Switch */}
@@ -1104,7 +1110,7 @@ export default function SalesSupportHubPage() {
                               e.target.value as "active" | "inactive" | "archived"
                             )
                           }
-                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border cursor-pointer focus:outline-none transition ${
+                          className={`text-xs font-semibold px-3 py-1 rounded-full border cursor-pointer focus:outline-none transition ${
                             (product.status || "active") === "active"
                               ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                               : (product.status || "active") === "inactive"
@@ -1117,26 +1123,26 @@ export default function SalesSupportHubPage() {
                           <option value="archived">⚪ Archived</option>
                         </select>
                       </div>
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                      <p className="text-sm text-slate-600 mt-2 line-clamp-2 leading-relaxed">
                         {product.description}
                       </p>
-                      <div className="text-[11px] text-slate-400 mt-1.5">
+                      <div className="text-xs sm:text-sm text-slate-500 mt-2 font-medium">
                         Type: {product.type} • Sub Type: {product.sub_type}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {product.is_deleted ? (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           aria-label={`Restore ${product.name}`}
                           data-testid={`restore-product-${product.name}`}
                           onClick={() => handleRestoreProduct(product)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs transition shadow-xs"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs sm:text-sm transition shadow-2xs"
                         >
-                          <RotateCcw className="w-3.5 h-3.5 text-emerald-700" />
+                          <RotateCcw className="w-4 h-4 text-emerald-700" />
                           <span>Restore</span>
                         </button>
                         <button
@@ -1149,9 +1155,9 @@ export default function SalesSupportHubPage() {
                               product,
                             })
                           }
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-red-200 bg-white hover:bg-red-50 text-red-600 font-semibold text-xs transition shadow-xs"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 font-semibold text-xs sm:text-sm transition shadow-2xs"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                          <Trash2 className="w-4 h-4 text-red-600" />
                           <span>Delete Permanently</span>
                         </button>
                       </div>
@@ -1162,7 +1168,7 @@ export default function SalesSupportHubPage() {
                           aria-label={`Edit ${product.name}`}
                           data-testid={`edit-product-${product.name}`}
                           onClick={() => openEditModal(product)}
-                          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition"
+                          className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-2xs"
                         >
                           <SquarePen className="w-4 h-4" />
                         </button>
@@ -1171,7 +1177,7 @@ export default function SalesSupportHubPage() {
                           aria-label={`Delete ${product.name}`}
                           data-testid={`delete-product-${product.name}`}
                           onClick={() => handleDeleteProduct(product)}
-                          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50 transition"
+                          className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50 transition shadow-2xs"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1196,53 +1202,53 @@ export default function SalesSupportHubPage() {
         {activeTab === "analytics" && (
           <div className="space-y-6">
             <div className="grid sm:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <div className="text-xs font-medium text-slate-500">
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+                <div className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
                   Total Catalog Products
                 </div>
-                <div className="text-2xl font-extrabold text-slate-900 mt-1">
+                <div className="text-3xl font-extrabold text-slate-900 mt-2">
                   {analytics?.total_products ?? activeProducts.length}
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <div className="text-xs font-medium text-slate-500">
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+                <div className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
                   AI Customer Searches
                 </div>
-                <div className="text-2xl font-extrabold text-indigo-600 mt-1">
+                <div className="text-3xl font-extrabold text-indigo-700 mt-2">
                   {analytics?.total_searches ?? historyList.length}
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <div className="text-xs font-medium text-slate-500">
-                  Supporting Validation Docs
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+                <div className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                  Validation Documents
                 </div>
-                <div className="text-2xl font-extrabold text-orange-600 mt-1">
+                <div className="text-3xl font-extrabold text-orange-600 mt-2">
                   {analytics?.total_supporting_documents ?? 6}
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <div className="text-xs font-medium text-slate-500">
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+                <div className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
                   Cross-Selling Pairs
                 </div>
-                <div className="text-2xl font-extrabold text-rose-600 mt-1">
+                <div className="text-3xl font-extrabold text-rose-600 mt-2">
                   {analytics?.total_cross_sell_links ?? 6}
                 </div>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-900 mb-4">
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-5">
                   Portfolio Breakdown by Category
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {(analytics?.categories_breakdown ?? []).map((item) => (
                     <div key={item.category}>
-                      <div className="flex justify-between text-xs font-medium text-slate-700 mb-1">
+                      <div className="flex justify-between text-sm font-semibold text-slate-700 mb-1.5">
                         <span>{item.category}</span>
                         <span>{item.count} product(s)</span>
                       </div>
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-slate-900 rounded-full"
                           style={{
@@ -1258,20 +1264,20 @@ export default function SalesSupportHubPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-900 mb-4">
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-5">
                   Portfolio Breakdown by Brand
                 </h3>
                 <div className="space-y-3">
                   {(analytics?.brands_breakdown ?? []).map((item) => (
                     <div
                       key={item.brand}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs"
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
                     >
-                      <span className="font-semibold text-slate-800">
+                      <span className="font-bold text-slate-800">
                         {item.brand}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">
+                      <span className="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-semibold text-xs sm:text-sm">
                         {item.count} item(s)
                       </span>
                     </div>
@@ -1291,34 +1297,34 @@ export default function SalesSupportHubPage() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-slate-200 p-6 relative">
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-slate-200 p-6 sm:p-8 relative animate-in fade-in zoom-in-95 duration-150">
             <button
               type="button"
               aria-label="Close modal"
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-700"
+              className="absolute right-5 top-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
-            <h2 id="modal-title" className="text-base font-bold text-slate-900">
+            <h2 id="modal-title" className="text-xl font-bold text-slate-900">
               {editingProduct ? "Edit Product" : "Add New Product"}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5 mb-5">
+            <p className="text-sm text-slate-500 mt-1 mb-6">
               {editingProduct
                 ? "Update product information in your catalog"
                 : "Add a new product to your catalog"}
             </p>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4">
+            <form onSubmit={handleSaveProduct} className="space-y-4.5">
               {/* Row 1: Product Name * | Brand * */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="product-name"
-                    className="block text-xs font-semibold text-slate-800 mb-1"
+                    className="block text-sm font-semibold text-slate-800 mb-1.5"
                   >
                     Product Name *
                   </label>
@@ -1330,13 +1336,13 @@ export default function SalesSupportHubPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="product-brand"
-                    className="block text-xs font-semibold text-slate-800 mb-1"
+                    className="block text-sm font-semibold text-slate-800 mb-1.5"
                   >
                     Brand *
                   </label>
@@ -1348,7 +1354,7 @@ export default function SalesSupportHubPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, brand: e.target.value })
                     }
-                    className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                   />
                 </div>
               </div>
@@ -1357,7 +1363,7 @@ export default function SalesSupportHubPage() {
               <div>
                 <label
                   htmlFor="product-description"
-                  className="block text-xs font-semibold text-slate-800 mb-1"
+                  className="block text-sm font-semibold text-slate-800 mb-1.5"
                 >
                   Description * (minimum 10 characters)
                 </label>
@@ -1370,9 +1376,9 @@ export default function SalesSupportHubPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                 />
-                <div className="text-[11px] text-slate-400 mt-1">
+                <div className="text-xs text-slate-400 mt-1">
                   {formData.description.length} characters
                 </div>
               </div>
@@ -1381,7 +1387,7 @@ export default function SalesSupportHubPage() {
               <div>
                 <label
                   htmlFor="product-image-url"
-                  className="block text-xs font-semibold text-slate-800 mb-1"
+                  className="block text-sm font-semibold text-slate-800 mb-1.5"
                 >
                   Image URL *
                 </label>
@@ -1394,16 +1400,16 @@ export default function SalesSupportHubPage() {
                     setFormData({ ...formData, image_url: e.target.value })
                   }
                   placeholder="https://..."
-                  className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                 />
               </div>
 
               {/* Row 4: Category * | Type * | Sub Type * */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-3.5">
                 <div>
                   <label
                     htmlFor="product-category"
-                    className="block text-xs font-semibold text-slate-800 mb-1"
+                    className="block text-sm font-semibold text-slate-800 mb-1.5"
                   >
                     Category *
                   </label>
@@ -1415,13 +1421,13 @@ export default function SalesSupportHubPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="product-type"
-                    className="block text-xs font-semibold text-slate-800 mb-1"
+                    className="block text-sm font-semibold text-slate-800 mb-1.5"
                   >
                     Type *
                   </label>
@@ -1433,13 +1439,13 @@ export default function SalesSupportHubPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, type: e.target.value })
                     }
-                    className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="product-sub-type"
-                    className="block text-xs font-semibold text-slate-800 mb-1"
+                    className="block text-sm font-semibold text-slate-800 mb-1.5"
                   >
                     Sub Type *
                   </label>
@@ -1451,7 +1457,7 @@ export default function SalesSupportHubPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, sub_type: e.target.value })
                     }
-                    className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                   />
                 </div>
               </div>
@@ -1460,7 +1466,7 @@ export default function SalesSupportHubPage() {
               <div>
                 <label
                   htmlFor="product-status"
-                  className="block text-xs font-semibold text-slate-800 mb-1"
+                  className="block text-sm font-semibold text-slate-800 mb-1.5"
                 >
                   Status (วงจรชีวิตสินค้า) *
                 </label>
@@ -1473,7 +1479,7 @@ export default function SalesSupportHubPage() {
                       status: e.target.value as "active" | "inactive" | "archived",
                     })
                   }
-                  className="w-full rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition"
                 >
                   <option value="active">🟢 Active (เปิดขาย / AI แนะนำลูกค้าได้)</option>
                   <option value="inactive">🟡 Inactive (พักการขายชั่วคราว / AI ไม่นำไปแนะนำ)</option>
@@ -1482,11 +1488,11 @@ export default function SalesSupportHubPage() {
               </div>
 
               {/* Modal Actions: Cancel | Create Product */}
-              <div className="flex items-center justify-end gap-2 pt-3">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
@@ -1494,7 +1500,7 @@ export default function SalesSupportHubPage() {
                   type="submit"
                   data-testid="submit-product-modal"
                   disabled={formSubmitting}
-                  className="px-4 py-2 rounded-lg bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold transition disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition shadow-xs disabled:opacity-50"
                 >
                   {formSubmitting
                     ? "Saving..."
@@ -1515,49 +1521,49 @@ export default function SalesSupportHubPage() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="users-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
         >
-          <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl border border-slate-200 p-6 relative max-h-[85vh] flex flex-col">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 p-6 sm:p-8 relative max-h-[85vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
             <button
               type="button"
               aria-label="Close modal"
               onClick={() => setIsUsersModalOpen(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-700"
+              className="absolute right-5 top-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
             <h2
               id="users-modal-title"
-              className="text-base font-bold text-slate-900 flex items-center gap-2"
+              className="text-xl font-bold text-slate-900 flex items-center gap-2.5"
             >
-              <Users className="w-5 h-5 text-indigo-600" />
+              <Users className="w-5 h-5 text-slate-800" />
               <span>Team Accounts & Security Lifecycle</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5 mb-4">
+            <p className="text-sm text-slate-500 mt-1 mb-5 leading-relaxed">
               Manage BU user access safely. Inactive or Archived users cannot
               log in, but their historical queries and product associations are
               preserved to prevent database crashes.
             </p>
 
-            <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
+            <div className="overflow-y-auto space-y-3 flex-1 pr-1">
               {usersList.map((u) => (
                 <div
                   key={u.id}
-                  className="rounded-xl border border-slate-200 p-3.5 flex items-center justify-between gap-3 bg-slate-50/50"
+                  className="rounded-xl border border-slate-200 p-4 flex items-center justify-between gap-4 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <strong className="text-xs text-slate-900">
+                      <strong className="text-sm sm:text-base font-bold text-slate-900">
                         {u.username}
                       </strong>
                       {u.id === user?.id && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium">
+                        <span className="text-xs px-2 py-0.5 rounded-md bg-slate-900 text-white font-semibold">
                           You
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500">{u.email}</div>
+                    <div className="text-xs sm:text-sm text-slate-500 mt-0.5">{u.email}</div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -1570,12 +1576,12 @@ export default function SalesSupportHubPage() {
                           e.target.value as "active" | "inactive" | "archived"
                         )
                       }
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg border cursor-pointer focus:outline-none transition ${
+                      className={`text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-xl border cursor-pointer focus:outline-none transition ${
                         (u.status || "active") === "active"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                           : (u.status || "active") === "inactive"
                           ? "bg-amber-50 text-amber-700 border-amber-300"
-                          : "bg-slate-200 text-slate-600 border-slate-300"
+                          : "bg-slate-100 text-slate-600 border-slate-300"
                       }`}
                     >
                       <option value="active">🟢 Active (ล็อกอินได้)</option>
@@ -1591,12 +1597,12 @@ export default function SalesSupportHubPage() {
               ))}
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 mt-2">
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500 mt-3">
               <span>{usersList.length} total team member(s)</span>
               <button
                 type="button"
                 onClick={() => setIsUsersModalOpen(false)}
-                className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs transition"
+                className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition shadow-xs"
               >
                 Close
               </button>
@@ -1608,27 +1614,27 @@ export default function SalesSupportHubPage() {
       {/* Permanent Delete Confirmation Dialog */}
       {permanentDeleteTarget.isOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
           data-testid="permanent-delete-modal"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-red-100 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                <AlertCircle className="w-5 h-5 text-red-600" />
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-red-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-900">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">
                   {permanentDeleteTarget.isEmptyTrash
                     ? "Empty Trash Completely?"
                     : "Permanently Delete Product?"}
                 </h3>
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs sm:text-sm text-red-600 font-semibold">
                   This action cannot be undone.
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed mb-6">
+            <p className="text-sm text-slate-600 leading-relaxed mb-6">
               {permanentDeleteTarget.isEmptyTrash ? (
                 <>
                   Are you sure you want to permanently delete all{" "}
@@ -1648,11 +1654,11 @@ export default function SalesSupportHubPage() {
               )}
             </p>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3.5 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setPermanentDeleteTarget({ isOpen: false })}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                className="px-4.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
               >
                 Cancel
               </button>
@@ -1666,9 +1672,9 @@ export default function SalesSupportHubPage() {
                     handlePermanentDelete(permanentDeleteTarget.product);
                   }
                 }}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition shadow-xs inline-flex items-center gap-1.5"
+                className="px-4.5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition shadow-xs inline-flex items-center gap-2"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
                 {permanentDeleteTarget.isEmptyTrash
                   ? "Yes, Empty Trash"
                   : "Yes, Delete Permanently"}

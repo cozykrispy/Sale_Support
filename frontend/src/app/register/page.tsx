@@ -44,8 +44,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#eef2fb] px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/90 p-8 sm:p-9">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 text-white mb-3">
             <UserPlus className="w-6 h-6" />
