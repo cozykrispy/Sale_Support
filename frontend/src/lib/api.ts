@@ -5,6 +5,9 @@ export interface UserProfile {
   id: number;
   username: string;
   email: string;
+  status?: "active" | "inactive" | "archived";
+  is_deleted?: boolean;
+  deleted_at?: string;
   created_at: string;
 }
 

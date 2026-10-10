@@ -19,9 +19,16 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    status: str = "active"
+    is_deleted: bool = False
+    deleted_at: Optional[datetime] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserStatusUpdate(BaseModel):
+    status: str = Field(..., pattern="^(active|inactive|archived)$", description="New status ('active', 'inactive', 'archived')")
 
 
 class TokenResponse(BaseModel):

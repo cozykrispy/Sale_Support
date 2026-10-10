@@ -73,4 +73,10 @@ def get_current_user(
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise credentials_exception
+
+    if user.is_deleted or user.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is inactive or archived. Please contact your BU Administrator.",
+        )
     return user

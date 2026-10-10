@@ -13,6 +13,7 @@ from app.schemas import (
     UserRegister,
     UserLogin,
     UserResponse,
+    UserStatusUpdate,
     TokenResponse,
     ProductCreate,
     ProductUpdate,
@@ -162,6 +163,12 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    if user.is_deleted or getattr(user, "status", "active") != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is inactive or archived. Please contact your BU Administrator.",
+        )
+
     access_token, expires_at = create_access_token(
         data={"sub": user.username, "user_id": user.id}
     )
@@ -182,6 +189,52 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
 def get_me(current_user: User = Depends(get_current_user)):
     """Verify current JWT token and return the authenticated user profile."""
     return current_user
+
+
+@app.get(
+    "/api/users",
+    response_model=List[UserResponse],
+    tags=["Authentication"],
+)
+def list_users(
+    include_archived: bool = Query(True, description="Whether to include archived users"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List team members and user accounts with lifecycle statuses (Requires valid JWT Token)."""
+    query = db.query(User)
+    if not include_archived:
+        query = query.filter(User.is_deleted == False)
+    return query.order_by(User.id.asc()).all()
+
+
+@app.patch(
+    "/api/users/{user_id}/status",
+    response_model=UserResponse,
+    tags=["Authentication"],
+)
+def update_user_status(
+    user_id: int,
+    payload: UserStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update user account status ('active', 'inactive', 'archived') to safely prevent login without deleting audit history."""
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    target_user.status = payload.status
+    if payload.status == "archived":
+        target_user.is_deleted = True
+        target_user.deleted_at = datetime.now(timezone.utc)
+    else:
+        target_user.is_deleted = False
+        target_user.deleted_at = None
+
+    db.commit()
+    db.refresh(target_user)
+    return target_user
 
 
 # ==========================================

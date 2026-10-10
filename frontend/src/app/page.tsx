@@ -25,6 +25,7 @@ import {
   Clock,
   ShieldCheck,
   AlertCircle,
+  Users,
 } from "lucide-react";
 import {
   apiFetch,
@@ -103,6 +104,10 @@ export default function SalesSupportHubPage() {
   // Analytics State
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
 
+  // User Management State (Active / Inactive / Archived)
+  const [usersList, setUsersList] = useState<UserProfile[]>([]);
+  const [isUsersModalOpen, setIsUsersModalOpen] = useState<boolean>(false);
+
   // Feedback banner
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -110,6 +115,37 @@ export default function SalesSupportHubPage() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleOpenUsersModal = async () => {
+    try {
+      const users = await apiFetch<UserProfile[]>("/api/users");
+      setUsersList(users);
+      setIsUsersModalOpen(true);
+    } catch (err: unknown) {
+      setErrorBanner(
+        err instanceof Error ? err.message : "Failed to load team users"
+      );
+    }
+  };
+
+  const handleUpdateUserStatus = async (
+    targetUserId: number,
+    newStatus: "active" | "inactive" | "archived"
+  ) => {
+    try {
+      await apiFetch<UserProfile>(`/api/users/${targetUserId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: newStatus }),
+      });
+      showToast(`Updated user status to ${newStatus.toUpperCase()}`);
+      const updated = await apiFetch<UserProfile[]>("/api/users");
+      setUsersList(updated);
+    } catch (err: unknown) {
+      setErrorBanner(
+        err instanceof Error ? err.message : "Failed to update user status"
+      );
+    }
   };
 
   const loadHubData = useCallback(async () => {
@@ -363,7 +399,15 @@ export default function SalesSupportHubPage() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleOpenUsersModal}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-medium transition"
+            >
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Team Accounts</span>
+            </button>
             {user && (
               <span>
                 Signed in as{" "}
@@ -1393,6 +1437,103 @@ export default function SalesSupportHubPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ============================================================ */}
+      {/* MODAL: TEAM ACCOUNTS MANAGEMENT (ACTIVE / INACTIVE / ARCHIVE)*/}
+      {/* ============================================================ */}
+      {isUsersModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="users-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl border border-slate-200 p-6 relative max-h-[85vh] flex flex-col">
+            <button
+              type="button"
+              aria-label="Close modal"
+              onClick={() => setIsUsersModalOpen(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-slate-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h2
+              id="users-modal-title"
+              className="text-base font-bold text-slate-900 flex items-center gap-2"
+            >
+              <Users className="w-5 h-5 text-indigo-600" />
+              <span>Team Accounts & Security Lifecycle</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5 mb-4">
+              Manage BU user access safely. Inactive or Archived users cannot
+              log in, but their historical queries and product associations are
+              preserved to prevent database crashes.
+            </p>
+
+            <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
+              {usersList.map((u) => (
+                <div
+                  key={u.id}
+                  className="rounded-xl border border-slate-200 p-3.5 flex items-center justify-between gap-3 bg-slate-50/50"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <strong className="text-xs text-slate-900">
+                        {u.username}
+                      </strong>
+                      {u.id === user?.id && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium">
+                          You
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-500">{u.email}</div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      aria-label={`Change status of ${u.username}`}
+                      value={u.status || "active"}
+                      onChange={(e) =>
+                        handleUpdateUserStatus(
+                          u.id,
+                          e.target.value as "active" | "inactive" | "archived"
+                        )
+                      }
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg border cursor-pointer focus:outline-none transition ${
+                        (u.status || "active") === "active"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                          : (u.status || "active") === "inactive"
+                          ? "bg-amber-50 text-amber-700 border-amber-300"
+                          : "bg-slate-200 text-slate-600 border-slate-300"
+                      }`}
+                    >
+                      <option value="active">🟢 Active (ล็อกอินได้)</option>
+                      <option value="inactive">
+                        🟡 Inactive (พักบัญชีชั่วคราว)
+                      </option>
+                      <option value="archived">
+                        ⚪ Archived (ยกเลิกบัญชีถาวร)
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 mt-2">
+              <span>{usersList.length} total team member(s)</span>
+              <button
+                type="button"
+                onClick={() => setIsUsersModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs transition"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
