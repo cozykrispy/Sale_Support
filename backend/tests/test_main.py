@@ -175,10 +175,24 @@ def test_product_crud_lifecycle():
     assert update_res.status_code == 200
     assert update_res.json()["brand"] == "Cytiva Life Sciences"
 
-    # 4. Delete product
+    # 4. Soft Delete product
     del_res = client.delete(f"/api/products/{prod_id}", headers=headers)
     assert del_res.status_code == 200
-    assert len(client.get("/api/products", headers=headers).json()) == 3
+    assert del_res.json()["is_deleted"] is True
+
+    # Active products list should now only contain 3 items
+    active_prods = client.get("/api/products", headers=headers).json()
+    assert len(active_prods) == 3
+
+    # Including soft-deleted products should return 4 items
+    all_prods = client.get("/api/products?include_deleted=true", headers=headers).json()
+    assert len(all_prods) == 4
+
+    # 5. Restore product back to active catalog
+    restore_res = client.post(f"/api/products/{prod_id}/restore", headers=headers)
+    assert restore_res.status_code == 200
+    assert restore_res.json()["is_deleted"] is False
+    assert len(client.get("/api/products", headers=headers).json()) == 4
 
 
 def test_ai_product_suggestion_returns_three_pillars():

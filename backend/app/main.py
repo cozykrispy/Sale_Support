@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -195,11 +196,16 @@ def list_products(
         None, description="Search by product name, brand, or description"
     ),
     category: Optional[str] = Query(None, description="Filter by category"),
+    include_deleted: bool = Query(
+        False, description="Whether to include soft-deleted products"
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """List all products in the catalog (Requires valid JWT Token)."""
+    """List products in the catalog (Requires valid JWT Token). Defaults to active products only."""
     query = db.query(Product)
+    if not include_deleted:
+        query = query.filter(Product.is_deleted == False)
     if category and category != "All Categories":
         query = query.filter(Product.category == category)
     if search:
@@ -329,15 +335,43 @@ def delete_product(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Delete a product from the catalog (Requires valid JWT Token)."""
+    """Soft delete a product from the catalog (Preserves data integrity for audit and restoration)."""
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
-    db.delete(product)
+    product.is_deleted = True
+    product.deleted_at = datetime.now(timezone.utc)
     db.commit()
-    return {"message": "Product deleted successfully", "deleted_id": product_id}
+    return {
+        "message": "Product soft-deleted successfully",
+        "deleted_id": product_id,
+        "is_deleted": True,
+    }
+
+
+@app.post(
+    "/api/products/{product_id}/restore",
+    response_model=ProductResponse,
+    tags=["Products"],
+)
+def restore_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Restore a previously soft-deleted product back into the active catalog."""
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+    product.is_deleted = False
+    product.deleted_at = None
+    db.commit()
+    db.refresh(product)
+    return product
 
 
 # ==========================================
@@ -357,7 +391,12 @@ async def ai_suggest_products(
     Generate AI-powered Product Suggestions, Supporting Documents, and Cross-selling
     recommendations via OpenRouter (Requires valid JWT Token).
     """
-    products = db.query(Product).order_by(Product.id.asc()).all()
+    products = (
+        db.query(Product)
+        .filter(Product.is_deleted == False)
+        .order_by(Product.id.asc())
+        .all()
+    )
     suggestion = await generate_product_suggestions(payload, products)
 
     history_entry = SearchHistory(
@@ -400,7 +439,8 @@ def get_analytics(
     current_user: User = Depends(get_current_user),
 ):
     """Return portfolio and AI search metrics for the Analytics Dashboard tab."""
-    products = db.query(Product).all()
+    products = db.query(Product).filter(Product.is_deleted == False).all()
+    deleted_count = db.query(Product).filter(Product.is_deleted == True).count()
     history_count = db.query(SearchHistory).count()
 
     categories = {}
@@ -419,6 +459,7 @@ def get_analytics(
         "total_searches": history_count,
         "total_supporting_documents": total_docs,
         "total_cross_sell_links": total_cross_sells,
+        "total_archived": deleted_count,
         "categories_breakdown": [
             {"category": k, "count": v} for k, v in categories.items()
         ],

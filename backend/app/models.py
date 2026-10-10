@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Boolean
 from app.database import Base
 
 
@@ -28,6 +28,8 @@ class Product(Base):
     sub_type = Column(String(150), nullable=False)
     supporting_documents = Column(JSON, default=list, nullable=False)
     cross_sell_products = Column(JSON, default=list, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False, index=True)
+    deleted_at = Column(DateTime, nullable=True)
     created_at = Column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )

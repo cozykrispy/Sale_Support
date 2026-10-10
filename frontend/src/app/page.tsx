@@ -12,6 +12,8 @@ import {
   Plus,
   SquarePen,
   Trash2,
+  RotateCcw,
+  Archive,
   X,
   Filter,
   LogOut,
@@ -85,7 +87,8 @@ export default function SalesSupportHubPage() {
   const [showTemplatesMenu, setShowTemplatesMenu] = useState<boolean>(false);
 
   // Manage Products State (Figure 3)
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [catalogView, setCatalogView] = useState<"active" | "trash">("active");
   const [catalogSearch, setCatalogSearch] = useState<string>("");
   const [selectedCategory, setSelectedCategory] =
     useState<string>("All Categories");
@@ -110,11 +113,11 @@ export default function SalesSupportHubPage() {
   const loadHubData = useCallback(async () => {
     try {
       const [prods, hist, stats] = await Promise.all([
-        apiFetch<Product[]>("/api/products"),
+        apiFetch<Product[]>("/api/products?include_deleted=true"),
         apiFetch<SearchHistoryItem[]>("/api/ai/history"),
         apiFetch<AnalyticsData>("/api/analytics"),
       ]);
-      setProducts(prods);
+      setAllProducts(prods);
       setHistoryList(hist);
       setAnalytics(stats);
     } catch (err: unknown) {
@@ -184,12 +187,17 @@ export default function SalesSupportHubPage() {
   };
 
   // --- Product Portfolio CRUD Handlers (Figure 3) ---
+  const activeProducts = allProducts.filter((p) => !p.is_deleted);
+  const trashProducts = allProducts.filter((p) => p.is_deleted);
+  const currentCatalogList =
+    catalogView === "active" ? activeProducts : trashProducts;
+
   const categories = [
     "All Categories",
-    ...Array.from(new Set(products.map((p) => p.category))),
+    ...Array.from(new Set(allProducts.map((p) => p.category))),
   ];
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = currentCatalogList.filter((p) => {
     const matchesCategory =
       selectedCategory === "All Categories" || p.category === selectedCategory;
     const q = catalogSearch.trim().toLowerCase();
@@ -261,11 +269,25 @@ export default function SalesSupportHubPage() {
     try {
       await apiFetch(`/api/products/${product.id}`, { method: "DELETE" });
       setSelectedIds((prev) => prev.filter((id) => id !== product.id));
-      showToast(`Deleted "${product.name}".`);
+      showToast(`Moved "${product.name}" to Trash (Soft Deleted). You can restore it anytime.`);
       await loadHubData();
     } catch (err: unknown) {
       setErrorBanner(
         err instanceof Error ? err.message : "Failed to delete product"
+      );
+    }
+  };
+
+  const handleRestoreProduct = async (product: Product) => {
+    try {
+      await apiFetch<Product>(`/api/products/${product.id}/restore`, {
+        method: "POST",
+      });
+      showToast(`Restored "${product.name}" back to Active Catalog!`);
+      await loadHubData();
+    } catch (err: unknown) {
+      setErrorBanner(
+        err instanceof Error ? err.message : "Failed to restore product"
       );
     }
   };
@@ -790,23 +812,61 @@ export default function SalesSupportHubPage() {
 
             {/* Catalog Header Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h3
-                data-testid="catalog-count-heading"
-                className="text-sm sm:text-base font-bold text-slate-900"
-              >
-                Product Catalog ({filteredProducts.length} of {products.length}{" "}
-                products)
-              </h3>
+              <div className="flex flex-wrap items-center gap-3">
+                <h3
+                  data-testid="catalog-count-heading"
+                  className="text-sm sm:text-base font-bold text-slate-900"
+                >
+                  Product Catalog ({filteredProducts.length} of{" "}
+                  {catalogView === "active"
+                    ? activeProducts.length
+                    : trashProducts.length}{" "}
+                  products)
+                </h3>
+
+                {/* Active vs Trash View Toggle */}
+                <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCatalogView("active");
+                      setSelectedIds([]);
+                    }}
+                    className={`px-3 py-1 rounded-md font-medium transition ${
+                      catalogView === "active"
+                        ? "bg-white text-slate-900 shadow-sm font-semibold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Active ({activeProducts.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCatalogView("trash");
+                      setSelectedIds([]);
+                    }}
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-md font-medium transition ${
+                      catalogView === "trash"
+                        ? "bg-white text-rose-700 shadow-sm font-semibold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <Archive className="w-3 h-3" />
+                    Trash ({trashProducts.length})
+                  </button>
+                </div>
+              </div>
 
               <div className="flex items-center gap-2">
-                {selectedIds.length > 0 && (
+                {selectedIds.length > 0 && catalogView === "active" && (
                   <button
                     type="button"
                     onClick={handleBulkDelete}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white px-3 py-2 text-xs font-semibold transition"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    Delete Selected ({selectedIds.length})
+                    Move Selected to Trash ({selectedIds.length})
                   </button>
                 )}
                 <button
@@ -914,24 +974,39 @@ export default function SalesSupportHubPage() {
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      aria-label={`Edit ${product.name}`}
-                      data-testid={`edit-product-${product.name}`}
-                      onClick={() => openEditModal(product)}
-                      className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition"
-                    >
-                      <SquarePen className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Delete ${product.name}`}
-                      data-testid={`delete-product-${product.name}`}
-                      onClick={() => handleDeleteProduct(product)}
-                      className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50 transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {product.is_deleted ? (
+                      <button
+                        type="button"
+                        aria-label={`Restore ${product.name}`}
+                        data-testid={`restore-product-${product.name}`}
+                        onClick={() => handleRestoreProduct(product)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs transition shadow-xs"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Restore</span>
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          aria-label={`Edit ${product.name}`}
+                          data-testid={`edit-product-${product.name}`}
+                          onClick={() => openEditModal(product)}
+                          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition"
+                        >
+                          <SquarePen className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Delete ${product.name}`}
+                          data-testid={`delete-product-${product.name}`}
+                          onClick={() => handleDeleteProduct(product)}
+                          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50 transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -956,7 +1031,7 @@ export default function SalesSupportHubPage() {
                   Total Catalog Products
                 </div>
                 <div className="text-2xl font-extrabold text-slate-900 mt-1">
-                  {analytics?.total_products ?? products.length}
+                  {analytics?.total_products ?? activeProducts.length}
                 </div>
               </div>
               <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
@@ -1003,7 +1078,7 @@ export default function SalesSupportHubPage() {
                           style={{
                             width: `${Math.min(
                               100,
-                              (item.count / Math.max(1, products.length)) * 100
+                              (item.count / Math.max(1, activeProducts.length)) * 100
                             )}%`,
                           }}
                         />

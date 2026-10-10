@@ -40,6 +40,8 @@ export interface Product {
   sub_type: string;
   supporting_documents?: SupportingDoc[];
   cross_sell_products?: CrossSellItem[];
+  is_deleted?: boolean;
+  deleted_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -108,6 +110,7 @@ export interface AnalyticsData {
   total_searches: number;
   total_supporting_documents: number;
   total_cross_sell_links: number;
+  total_archived?: number;
   categories_breakdown: { category: string; count: number }[];
   brands_breakdown: { brand: string; count: number }[];
 }
