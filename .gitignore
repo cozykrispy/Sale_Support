@@ -20,3 +20,7 @@ test-results/
 # OS
 .DS_Store
 Thumbs.db
+
+# Design mockups & screenshots
+pdf_img_*.png
+
