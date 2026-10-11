@@ -61,23 +61,20 @@ jobs:
         env:
           SEMGREP_TIMEOUT: 300
 
+      - name: Install Trivy Security Scanner
+        run: |
+          sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update && sudo apt-get install -y trivy
+
       - name: Run SCA Filesystem Scan with Trivy
-        uses: aquasecurity/trivy-action@v0.28.0
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          format: "table"
-          severity: "CRITICAL,HIGH"
-          exit-code: "0"
+        run: |
+          trivy fs --format table --severity CRITICAL,HIGH --exit-code 0 .
 
       - name: Run IaC Security Scan with Trivy (Dockerfile & docker-compose.yml)
-        uses: aquasecurity/trivy-action@v0.28.0
-        with:
-          scan-type: "config"
-          scan-ref: "."
-          format: "table"
-          severity: "CRITICAL,HIGH,MEDIUM"
-          exit-code: "0"
+        run: |
+          trivy config --format table --severity CRITICAL,HIGH,MEDIUM --exit-code 0 .
 
   # ====================================================================
   # 3. Docker Single-Command Deploy + E2E (Playwright) + DAST (OWASP ZAP)
@@ -101,6 +98,8 @@ jobs:
             fi
             sleep 3
           done
+          docker compose ps
+          docker compose logs --tail=50
 
       - name: Set up Node.js for Playwright E2E Tests
         uses: actions/setup-node@v4
