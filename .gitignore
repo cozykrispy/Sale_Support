@@ -21,6 +21,12 @@ test-results/
 .DS_Store
 Thumbs.db
 
-# Design mockups & screenshots
+# Design mockups & screenshots & images
 pdf_img_*.png
+*.png
+*.jpg
+*.jpeg
 
+# Presentation & Pitch
+*PITCH*
+*pitch*
