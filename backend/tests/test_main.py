@@ -140,11 +140,12 @@ def test_product_crud_lifecycle():
     token = login_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 1. Read initial 3 seeded products
+    # 1. Read initial seeded products
     list_res = client.get("/api/products", headers=headers)
     assert list_res.status_code == 200
     products = list_res.json()
-    assert len(products) == 3
+    initial_count = len(products)
+    assert initial_count >= 3
     assert products[0]["name"] == "DynaChrom system"
 
     # 2. Create new product
@@ -180,19 +181,19 @@ def test_product_crud_lifecycle():
     assert del_res.status_code == 200
     assert del_res.json()["is_deleted"] is True
 
-    # Active products list should now only contain 3 items
+    # Active products list should now only contain initial_count items
     active_prods = client.get("/api/products", headers=headers).json()
-    assert len(active_prods) == 3
+    assert len(active_prods) == initial_count
 
-    # Including soft-deleted products should return 4 items
+    # Including soft-deleted products should return initial_count + 1 items
     all_prods = client.get("/api/products?include_deleted=true", headers=headers).json()
-    assert len(all_prods) == 4
+    assert len(all_prods) == initial_count + 1
 
     # 5. Restore product back to active catalog
     restore_res = client.post(f"/api/products/{prod_id}/restore", headers=headers)
     assert restore_res.status_code == 200
     assert restore_res.json()["is_deleted"] is False
-    assert len(client.get("/api/products", headers=headers).json()) == 4
+    assert len(client.get("/api/products", headers=headers).json()) == initial_count + 1
 
     # 6. Delete Permanently (Hard Delete)
     perm_del_res = client.delete(f"/api/products/{prod_id}/permanent", headers=headers)
@@ -200,7 +201,7 @@ def test_product_crud_lifecycle():
     assert perm_del_res.json()["permanent"] is True
 
     # Product is now permanently removed even with include_deleted=true
-    assert len(client.get("/api/products?include_deleted=true", headers=headers).json()) == 3
+    assert len(client.get("/api/products?include_deleted=true", headers=headers).json()) == initial_count
 
 
 def test_ai_product_suggestion_returns_three_pillars():

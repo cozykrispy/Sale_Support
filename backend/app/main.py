@@ -1,8 +1,11 @@
+import os
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status, Query
+from fastapi import FastAPI, Depends, HTTPException, status, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -31,6 +34,9 @@ from app.auth import (
 )
 from app.ai_service import generate_product_suggestions
 from app.seed import seed_initial_data
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @asynccontextmanager
@@ -89,6 +95,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.get("/api/health", tags=["Health"])
@@ -296,6 +304,32 @@ def get_product(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
     return product
+
+
+@app.post(
+    "/api/products/upload-image",
+    tags=["Products"],
+)
+async def upload_product_image(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload a local product image file (PNG, JPG, WEBP, SVG) and return its served URL."""
+    filename = file.filename or "product.png"
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}:
+        ext = ".png"
+
+    unique_name = f"prod_{uuid.uuid4().hex[:12]}{ext}"
+    file_path = os.path.join(UPLOAD_DIR, unique_name)
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    base_url = str(request.base_url).rstrip("/")
+    image_url = f"{base_url}/uploads/{unique_name}"
+    return {"image_url": image_url, "filename": unique_name}
 
 
 @app.post(

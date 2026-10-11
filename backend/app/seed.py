@@ -135,6 +135,60 @@ def seed_initial_data(db: Session) -> None:
                     },
                 ],
             ),
+            Product(
+                name="Cytiva Whatman Mixed Cellulose Ester (MCE) Membrane",
+                brand="Cytiva",
+                description=(
+                    "Standard biological and aqueous solution filtration membrane filter, 0.45 µm pore size, "
+                    "ideal for microbial enumeration, particle testing, and routine laboratory clarification."
+                ),
+                image_url="https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=800&q=80",
+                category="Filtration & Membranes",
+                type="Microbial Analysis & QC",
+                sub_type="Gridded Membrane Filter",
+                supporting_documents=[
+                    {
+                        "title": "Whatman MCE Membrane Filtration Certificate of Analysis & Pore Size Consistency",
+                        "doc_type": "Validation Report",
+                        "summary": "Lot-to-lot consistency validation and recovery rate verification for aqueous bioburden monitoring.",
+                        "url": "https://example.com/docs/whatman-mce-validation.pdf",
+                    }
+                ],
+                cross_sell_products=[
+                    {
+                        "product_name": "Advantec PES 0.22 µm Sterilizing Capsule Filter",
+                        "category": "Filtration & Membranes",
+                        "reason": "Upstream sterile filtration pairing before analytical particle sampling.",
+                    }
+                ],
+            ),
+            Product(
+                name="Thermo Scientific Sorvall Legend XFR Centrifuge",
+                brand="Thermo Scientific",
+                description=(
+                    "Floor-standing refrigerated high-speed centrifuge with Auto-Lock rotor exchange, "
+                    "delivering exceptional capacity and ergonomic processing for cell harvesting and bioproduction."
+                ),
+                image_url="https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=800&q=80",
+                category="Laboratory Equipment",
+                type="Centrifugation Skid",
+                sub_type="Refrigerated Floor Centrifuge",
+                supporting_documents=[
+                    {
+                        "title": "Sorvall Legend XFR IQ/OQ Qualification Protocol and Temperature Uniformity",
+                        "doc_type": "Validation Report",
+                        "summary": "Standard GMP installation & operational qualification validation guide.",
+                        "url": "https://example.com/docs/sorvall-xfr-ioq.pdf",
+                    }
+                ],
+                cross_sell_products=[
+                    {
+                        "product_name": "DynaChrom system",
+                        "category": "Chromatography Systems",
+                        "reason": "Direct cell clarification output feeds directly into downstream DynaChrom capture skid.",
+                    }
+                ],
+            ),
         ]
         db.add_all(initial_products)
         db.commit()

@@ -205,3 +205,29 @@ export async function apiFetch<T>(
 
   return response.json();
 }
+
+export async function uploadProductImage(
+  file: File
+): Promise<{ image_url: string; filename: string }> {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/products/upload-image`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(errBody.detail || `Image Upload Error (${response.status})`);
+  }
+
+  return response.json();
+}

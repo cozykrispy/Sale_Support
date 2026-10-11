@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1/chat/completions"
     DEFAULT_AI_MODEL: str = os.getenv(
-        "DEFAULT_AI_MODEL", "google/gemini-2.0-flash-exp:free"
+        "DEFAULT_AI_MODEL", "cohere/north-mini-code:free"
     )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

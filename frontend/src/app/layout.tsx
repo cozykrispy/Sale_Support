@@ -1,10 +1,23 @@
 import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Sales Support Hub | Fusion Advantec",
+  title: "Sales Support Hub — Fusion Advantec",
   description:
-    "AI-powered product search, model-aware recommendations, and portfolio management—built for fast, customer-ready answers.",
+    "Enterprise bioprocess & laboratory catalog intelligence, AI sales engineering, and portfolio management.",
 };
 
 export default function RootLayout({
@@ -13,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#ebf1fd] text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-screen bg-[#FAFAFA] text-zinc-950 font-sans antialiased selection:bg-zinc-900 selection:text-white">
         {children}
       </body>
     </html>
