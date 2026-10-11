@@ -62,7 +62,7 @@ jobs:
           SEMGREP_TIMEOUT: 300
 
       - name: Run SCA Filesystem Scan with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           scan-type: "fs"
           scan-ref: "."
@@ -71,7 +71,7 @@ jobs:
           exit-code: "0"
 
       - name: Run IaC Security Scan with Trivy (Dockerfile & docker-compose.yml)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           scan-type: "config"
           scan-ref: "."
