@@ -2280,42 +2280,70 @@ export default function SalesSupportHubPage() {
                   />
                 </div>
 
-                {/* Row 3: Image URL * OR Upload Image File */}
+                {/* Row 3: Product Image URL */}
                 <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80">
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <label
                       htmlFor="product-image-url"
                       className="block text-xs font-medium text-slate-800"
                     >
-                      Product Image * (URL or Local Upload)
+                      Product Image URL *
                     </label>
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-medium cursor-pointer transition shadow-2xs">
-                      <Upload className="w-3.5 h-3.5 text-slate-600" />
-                      <span>
-                        {isUploadingImage
-                          ? "Uploading..."
-                          : "Upload File from Computer"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageFileUpload}
-                        disabled={isUploadingImage}
-                        className="hidden"
-                      />
-                    </label>
+                    {/* Quick Sample Presets for Fast Demos */}
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className="text-slate-600 hidden sm:inline">Sample:</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            image_url:
+                              "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=800&q=80",
+                          })
+                        }
+                        className="px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 font-medium transition"
+                      >
+                        Skid System
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            image_url:
+                              "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80",
+                          })
+                        }
+                        className="px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 font-medium transition"
+                      >
+                        Column
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            image_url:
+                              "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=800&q=80",
+                          })
+                        }
+                        className="px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 font-medium transition"
+                      >
+                        Filter
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex gap-3 items-center">
                     <input
                       id="product-image-url"
-                      type="text"
+                      type="url"
                       required
                       value={formData.image_url}
                       onChange={(e) =>
                         setFormData({ ...formData, image_url: e.target.value })
                       }
-                      placeholder="https://... or upload an image file above"
+                      placeholder="https://images.unsplash.com/... (Direct Public Image URL)"
                       className="flex-1 rounded-xl bg-white border border-slate-200 px-3.5 py-2 text-xs sm:text-sm text-slate-950 focus:outline-none focus:border-blue-600 transition"
                     />
                     {formData.image_url ? (
