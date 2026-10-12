@@ -79,6 +79,8 @@ test.describe("Fusion Advantec - AI Sales Support Hub E2E Suite", () => {
     // Step E: Navigate to /analyze and verify Graphs
     await page.click('[data-testid="tab-analytics-dashboard"]');
     await expect(page).toHaveURL(/\/analyze/, { timeout: 10000 });
-    await expect(page.getByText("Graph 01 / Category Coverage Bar Chart")).toBeVisible();
+    await expect(
+      page.getByText("Category Coverage & Documentation Depth")
+    ).toBeVisible();
   });
 });

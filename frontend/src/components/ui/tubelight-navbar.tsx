@@ -129,9 +129,9 @@ export function TubelightNavbar({
               <Command className="w-3.5 h-3.5" />
             </div>
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm font-semibold text-zinc-900 tracking-tight truncate">
-                Sales Support
-              </span>
+              <h1 className="text-sm font-semibold text-zinc-900 tracking-tight truncate">
+                Sales Support Hub
+              </h1>
               <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-zinc-100 text-zinc-600 border border-zinc-200/70">
                 Fusion Advantec
               </span>

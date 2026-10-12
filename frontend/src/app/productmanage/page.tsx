@@ -367,11 +367,11 @@ export default function ProductManagePage() {
     const defaultSub = defaultType?.sub_types[0];
     setFormData({
       ...EMPTY_FORM,
-      category: defaultCat?.name || "",
+      category: defaultCat?.name || "Chromatography Solutions",
       category_id: defaultCat?.id,
-      type: defaultType?.name || "",
+      type: defaultType?.name || "Chromatography Columns",
       type_id: defaultType?.id,
-      sub_type: defaultSub?.name || "",
+      sub_type: defaultSub?.name || "Process Columns",
       sub_type_id: defaultSub?.id,
     });
     setErrorBanner(null);
