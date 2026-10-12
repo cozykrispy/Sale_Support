@@ -91,15 +91,22 @@ jobs:
         run: |
           docker compose up -d --build
           echo "Waiting for Backend and Frontend containers to become healthy..."
+          HEALTHY=0
           for i in {1..30}; do
-            if curl -sSf http://localhost:8000/api/health > /dev/null && curl -sSf http://localhost:3000/login > /dev/null; then
-              echo "Both services are up and healthy!"
+            if curl -sSf http://localhost:8000/api/health > /dev/null 2>&1 && curl -sSf http://localhost:3000/login > /dev/null 2>&1; then
+              echo "Both services are up and healthy! (Attempt $i)"
+              HEALTHY=1
               break
             fi
+            echo "Waiting for services... attempt $i/30"
             sleep 3
           done
           docker compose ps
-          docker compose logs --tail=50
+          if [ $HEALTHY -ne 1 ]; then
+            echo "::error::Containers failed to become healthy in time! Dumping recent container logs:"
+            docker compose logs --tail=100
+            exit 1
+          fi
 
       - name: Set up Node.js for Playwright E2E Tests
         uses: actions/setup-node@v4

@@ -74,18 +74,14 @@ export function TubelightNavbar({
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-b from-white to-slate-50 border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex items-center justify-center shrink-0">
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-800" />
           </div>
-          <div className="hidden lg:block truncate">
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold text-slate-900 tracking-tight truncate">
-                Sales Support Hub
-              </h1>
-              <span className="hidden xl:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100/90 text-slate-600 border border-slate-200/60">
-                Fusion Advantec
-              </span>
-            </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-sm font-semibold text-slate-900 tracking-tight truncate">
+              Sales Support Hub
+            </h1>
+            <span className="hidden xl:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100/90 text-slate-600 border border-slate-200/60">
+              Fusion Advantec
+            </span>
           </div>
-          {/* Hidden SEO/Test Heading for mobile when text is hidden */}
-          <h1 className="sr-only lg:hidden">Sales Support Hub</h1>
         </div>
 
         {/* Center: 21st.dev Smooth Sliding Pill Navigation (Pure White, No Blue Line, Full Display No Scrollbar) */}
@@ -151,8 +147,7 @@ export function TubelightNavbar({
           {/* JWT Status Pill (Visible for E2E & Session Verification) */}
           <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-emerald-50/70 border border-emerald-200/60 text-[11px] font-medium text-emerald-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="hidden xl:inline">Protected Route (JWT Active)</span>
-            <span className="xl:hidden sr-only">Protected Route (JWT Active)</span>
+            <span className="inline">Protected Route (JWT Active)</span>
             {expiresAt && (
               <span className="hidden 2xl:inline-flex items-center gap-1 text-emerald-700/80 font-mono text-[10px] pl-1 border-l border-emerald-200/80">
                 <Clock className="w-2.5 h-2.5" />

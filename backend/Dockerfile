@@ -25,7 +25,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Create non-root user for container security (IaC & DevSecOps best practice)
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /app -s /sbin/nologin appuser && \
-    mkdir -p /app/data /app/uploads && chown -R appuser:appgroup /app
+    mkdir -p /app/data /app/uploads && \
+    chmod -R 777 /app/data /app/uploads && \
+    chown -R appuser:appgroup /app
 
 COPY --from=builder /build/wheels /wheels
 COPY --from=builder /build/requirements.txt .
