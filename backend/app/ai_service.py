@@ -12,6 +12,8 @@ from app.schemas import (
     SuggestedProductResult,
     SupportingDocumentResult,
     CrossSellingResult,
+    SupportingDocItem,
+    CrossSellItem,
 )
 
 MODEL_MAP = {
@@ -32,6 +34,11 @@ FAST_FREE_FALLBACK_CHAIN = [
 ]
 
 
+def _clean_text(text: str) -> str:
+    """Remove raw markdown bold asterisks so text renders cleanly."""
+    return re.sub(r"\*\*([^*]+)\*\*", r"\1", text or "").strip()
+
+
 def _tokenize_multilingual(text: str) -> List[str]:
     """
     Tokenize English and Thai text without breaking Thai combining vowels or tone marks.
@@ -50,9 +57,9 @@ def _score_product_match(query: str, product: Product) -> int:
     Compute a high-precision relevance score (0-99) between customer query (Thai or English)
     and a catalog product (including user-added products).
     """
-    q_lower = query.lower().strip()
+    q_lower = (query or "").lower().strip()
     if not q_lower:
-        return 70
+        return 85
 
     p_name = (product.name or "").lower().strip()
     p_brand = (product.brand or "").lower().strip()
@@ -65,7 +72,6 @@ def _score_product_match(query: str, product: Product) -> int:
     primary_haystack = f"{p_name} {p_brand} {p_cat} {p_type} {p_sub}"
 
     bonus = 0
-    # 1. Direct phrase / bidirectional substring check (great for Thai phrases without spaces)
     if p_name and (p_name in q_lower or q_lower in p_name):
         bonus += 35
     if p_brand and p_brand in q_lower:
@@ -75,11 +81,9 @@ def _score_product_match(query: str, product: Product) -> int:
     if p_sub and p_sub in q_lower:
         bonus += 15
 
-    # 2. Check if any token from the product's name/category/type appears inside the query
     prod_primary_tokens = _tokenize_multilingual(primary_haystack)
     reverse_hits = sum(1 for pt in prod_primary_tokens if len(pt) >= 3 and pt in q_lower)
 
-    # 3. Check query tokens against product haystack
     keywords = _tokenize_multilingual(q_lower)
     if not keywords:
         return min(98, 70 + bonus)
@@ -92,8 +96,48 @@ def _score_product_match(query: str, product: Product) -> int:
 
     hit_ratio = hits / max(1, len(keywords))
     name_ratio = name_hits / max(1, len(keywords) * 2)
-    raw_score = 62 + int(hit_ratio * 22) + int(name_ratio * 12) + min(12, bonus // 3) + min(6, reverse_hits * 2)
+    raw_score = (
+        62
+        + int(hit_ratio * 22)
+        + int(name_ratio * 12)
+        + min(12, bonus // 3)
+        + min(6, reverse_hits * 2)
+    )
     return min(99, max(42, raw_score))
+
+
+def _filter_by_taxonomy(
+    products: List[Product], req: AISuggestRequest
+) -> List[Product]:
+    filtered = products
+    if req.category and req.category not in ("All Categories", "all", ""):
+        filtered = [p for p in filtered if p.category == req.category]
+    if req.type and req.type not in ("All Types", "all", ""):
+        filtered = [p for p in filtered if p.type == req.type]
+    if req.sub_type and req.sub_type not in ("All Sub Types", "all", ""):
+        filtered = [p for p in filtered if p.sub_type == req.sub_type]
+    return filtered
+
+
+def _extract_product_docs_and_cross_sells(prod: Product):
+    docs = [
+        SupportingDocItem(
+            title=d.get("title", "Validation Report"),
+            doc_type=d.get("doc_type", "Validation Report"),
+            summary=d.get("summary", ""),
+            url=d.get("url", "#"),
+        )
+        for d in (prod.supporting_documents or [])
+    ]
+    cs = [
+        CrossSellItem(
+            product_name=c.get("product_name", "Complementary Product"),
+            category=c.get("category", prod.category),
+            reason=c.get("reason", ""),
+        )
+        for c in (prod.cross_sell_products or [])
+    ]
+    return docs, cs
 
 
 def build_fallback_suggestion(
@@ -104,60 +148,66 @@ def build_fallback_suggestion(
 ) -> AISuggestResponse:
     """
     Fast & accurate multilingual catalog recommendation engine.
-    Used directly for Quick Search (<50ms response) and as seamless fallback for Detailed Search.
     """
+    filtered_products = _filter_by_taxonomy(products, req)
     scored = sorted(
-        [(_score_product_match(req.query, p), p) for p in products],
+        [(_score_product_match(req.query, p), p) for p in filtered_products],
         key=lambda x: x[0],
         reverse=True,
     )
 
     is_quick = req.search_mode == "quick"
 
-    # Filter out non-matching products (score <= 45) if we have strong matches (score >= 68)
-    strong_matches = [(s, p) for s, p in scored if s >= 68]
-    if strong_matches:
-        selected_scored = strong_matches[:3] if is_quick else strong_matches[:5]
+    strong_matches = [(s, p) for s, p in scored if s >= 65]
+    if is_quick:
+        # In quick search, if query is empty return all filtered products; otherwise return strong matches or all scored
+        if not req.query.strip():
+            selected_scored = scored
+        elif strong_matches:
+            selected_scored = strong_matches
+        else:
+            selected_scored = scored
     else:
-        selected_scored = scored[:3] if is_quick else scored[:5]
+        selected_scored = strong_matches[:5] if strong_matches else scored[:5]
 
     suggested_products: List[SuggestedProductResult] = []
     supporting_docs: List[SupportingDocumentResult] = []
     cross_selling: List[CrossSellingResult] = []
 
     for score, prod in selected_scored:
-        if is_quick:
-            reasoning = (
-                f"ตรงกับความต้องการ ({score}% Match) — {prod.name} ({prod.brand}) "
-                f"หมวด {prod.category} ({prod.sub_type}): {prod.description}"
-            )
-            benefits = [
-                f"{prod.category} • {prod.type} ({prod.sub_type})",
-                f"มีเอกสารอ้างอิง/Validation รองรับ {len(prod.supporting_documents or [])} รายการ",
-            ]
-        else:
-            reasoning = (
-                f"{prod.name} ({prod.brand}) in {prod.category} directly addresses your customer's requirement "
-                f"with proven {prod.sub_type} capabilities: {prod.description}"
-            )
-            benefits = [
-                f"Category & Spec Fit: {prod.category} — {prod.type} ({prod.sub_type})",
-                f"Backed by {len(prod.supporting_documents or [])} validation reports & technical publications",
-                f"Ready for cross-selling with {len(prod.cross_sell_products or [])} complementary workflow products",
-            ]
+        prod_docs, prod_cs = _extract_product_docs_and_cross_sells(prod)
+        first_doc_title = (
+            prod_docs[0].title if prod_docs else "มีเอกสาร Validation Report รองรับ"
+        )
+        first_cs_name = (
+            prod_cs[0].product_name if prod_cs else "ชุดอุปกรณ์เสริมในสายงานเดียวกัน"
+        )
+
+        reasoning = f"ตัวเลือกที่ตรงความต้องการ ({score}% Match) • หมวด {prod.category} ({prod.sub_type})"
+        benefits = [
+            f"ประเภทสินค้า: {prod.category} — {prod.type} ({prod.sub_type})",
+            f"เอกสารประกอบ (Supporting Docs): {first_doc_title}",
+            f"แนะนำพ่วงขาย (Cross-selling): {first_cs_name}",
+        ]
 
         suggested_products.append(
             SuggestedProductResult(
                 product_id=prod.id,
                 name=prod.name,
                 brand=prod.brand,
+                description=prod.description,
                 category=prod.category,
                 type=prod.type,
                 sub_type=prod.sub_type,
+                category_id=prod.category_id,
+                type_id=prod.type_id,
+                sub_type_id=prod.sub_type_id,
                 image_url=prod.image_url,
                 match_score=score,
                 reasoning=reasoning,
                 key_benefits=benefits,
+                supporting_documents=prod_docs,
+                cross_sell_products=prod_cs,
             )
         )
 
@@ -188,30 +238,39 @@ def build_fallback_suggestion(
                 )
             )
 
-    top_name = suggested_products[0].name if suggested_products else "Catalog Portfolio"
+    top_name = suggested_products[0].name if suggested_products else "ไม่พบรายการสินค้า"
     top_score = suggested_products[0].match_score if suggested_products else 0
+    query_display = req.query.strip() or "รายการสินค้าตามตัวกรองที่เลือก"
 
     if is_quick:
         summary = (
-            f"⚡ Quick Search (ค้นหาด่วนทันใจ): พบสินค้าที่ตรงกับ \"{req.query[:100]}\" จำนวน {len(suggested_products)} รายการ "
-            f"โดยแนะนำอันดับ 1 คือ **{top_name}** (ความแม่นยำ {top_score}%) พร้อมเอกสารประกอบและสินค้าพ่วงขายทันที"
+            f"พบสินค้าที่ตรงกับ \"{query_display}\" จำนวน {len(suggested_products)} รายการ "
+            f"(อันดับ 1: {top_name} • {top_score}% Match)"
         )
+        closing_note = ""
     else:
         summary = (
-            f"✨ Detailed Analysis: สำหรับความต้องการของลูกค้า \"{req.query}\", "
-            f"เราขอแนะนำ **{top_name}** ({top_score}% Match) เป็นโซลูชันหลัก พร้อมเอกสาร Validation Report "
-            f"และชุดสินค้า Cross-selling เพื่อปิดการขายครบวงจร"
+            f"เข้าใจแล้วครับ สำหรับความต้องการ \"{query_display}\" "
+            f"ทางระบบได้วิเคราะห์สเปก เอกสาร Validation และสินค้าที่เกี่ยวข้องในแคตตาล็อก โดยรุ่นที่น่าพิจารณามีดังนี้"
+        )
+        doc_count = len(supporting_docs)
+        cs_names = ", ".join(list({c.product_name for c in cross_selling[:3]})) or "อุปกรณ์เสริมในระบบ"
+        closing_note = (
+            f"เรื่องเอกสารประกอบและการต่อยอด (Supporting Documents & Cross-selling): "
+            f"จากข้อมูลในระบบมีเอกสาร Validation Report และสิ่งพิมพ์อ้างอิงรองรับรวม {doc_count} รายการ "
+            f"และแนะนำให้เสนอพ่วงคู่กับ {cs_names} เพื่อให้ครอบคลุมกระบวนการทำงานครบวงจรครับ (คลิกที่รายการสินค้าเพื่อดูรายละเอียดและเอกสารทั้งหมด)"
         )
 
-    doc_limit = 3 if is_quick else 6
-    cs_limit = 3 if is_quick else 6
+    doc_limit = 6
+    cs_limit = 6
 
     return AISuggestResponse(
         query=req.query,
         search_mode=req.search_mode,
-        model_used="Instant Catalog Matcher ⚡" if is_quick else model_label,
+        model_used="Quick Catalog Search" if is_quick else model_label,
         inference_source=inference_source,
-        executive_summary=summary,
+        executive_summary=_clean_text(summary),
+        closing_note=_clean_text(closing_note),
         suggested_products=suggested_products,
         supporting_documents=supporting_docs[:doc_limit],
         cross_selling=cross_selling[:cs_limit],
@@ -224,8 +283,7 @@ def _sync_llm_products_with_db(
 ) -> List[SuggestedProductResult]:
     """
     Ensure every product returned by the LLM uses the EXACT image_url, brand, category,
-    type, and sub_type stored in our database (including user-added products).
-    Also injects high-scoring user-added products if the LLM missed them.
+    type, sub_type, description, supporting_documents, and cross_sell_products stored in DB.
     """
     by_id = {p.id: p for p in products}
     by_name = {(p.name or "").lower().strip(): p for p in products}
@@ -243,7 +301,6 @@ def _sync_llm_products_with_db(
         elif pname in by_name:
             db_prod = by_name[pname]
         else:
-            # Fuzzy match by substring
             for p in products:
                 if p.name.lower() in pname or pname in p.name.lower():
                     db_prod = p
@@ -260,48 +317,69 @@ def _sync_llm_products_with_db(
                 if isinstance(llm_score, (int, float)) and 50 <= llm_score <= 99
                 else det_score
             )
+            prod_docs, prod_cs = _extract_product_docs_and_cross_sells(db_prod)
             synced.append(
                 SuggestedProductResult(
                     product_id=db_prod.id,
                     name=db_prod.name,
                     brand=db_prod.brand,
+                    description=db_prod.description,
                     category=db_prod.category,
                     type=db_prod.type,
                     sub_type=db_prod.sub_type,
-                    image_url=db_prod.image_url,  # Always use exact DB image_url!
+                    category_id=db_prod.category_id,
+                    type_id=db_prod.type_id,
+                    sub_type_id=db_prod.sub_type_id,
+                    image_url=db_prod.image_url,
                     match_score=max(final_score, det_score),
-                    reasoning=item.get("reasoning")
-                    or f"{db_prod.name} ({db_prod.brand}) fits your requirement: {db_prod.description}",
-                    key_benefits=item.get("key_benefits")
-                    or [
-                        f"{db_prod.category} — {db_prod.type} ({db_prod.sub_type})",
-                        f"Includes {len(db_prod.supporting_documents or [])} supporting documents",
+                    reasoning=_clean_text(
+                        item.get("reasoning")
+                        or f"ตัวเลือกที่ตรงความต้องการ • หมวด {db_prod.category} ({db_prod.sub_type})"
+                    ),
+                    key_benefits=[
+                        _clean_text(b)
+                        for b in (
+                            item.get("key_benefits")
+                            or [
+                                f"ประเภท: {db_prod.category} — {db_prod.type} ({db_prod.sub_type})",
+                                f"มีเอกสาร Validation Report รองรับ {len(prod_docs)} รายการ",
+                                f"รองรับการพ่วงขาย (Cross-sell) {len(prod_cs)} รายการ",
+                            ]
+                        )
                     ],
+                    supporting_documents=prod_docs,
+                    cross_sell_products=prod_cs,
                 )
             )
 
-    # Check if any database product (e.g. newly added by the user) has a strong match (>= 72)
-    # but was omitted by the LLM
     for p in products:
         if p.id not in seen_ids:
             score = _score_product_match(query, p)
             if score >= 72:
                 seen_ids.add(p.id)
+                prod_docs, prod_cs = _extract_product_docs_and_cross_sells(p)
                 synced.append(
                     SuggestedProductResult(
                         product_id=p.id,
                         name=p.name,
                         brand=p.brand,
+                        description=p.description,
                         category=p.category,
                         type=p.type,
                         sub_type=p.sub_type,
+                        category_id=p.category_id,
+                        type_id=p.type_id,
+                        sub_type_id=p.sub_type_id,
                         image_url=p.image_url,
                         match_score=score,
-                        reasoning=f"{p.name} ({p.brand}) matches your search criteria: {p.description}",
+                        reasoning=f"ตัวเลือกที่ตรงความต้องการ ({score}% Match) • {p.category}",
                         key_benefits=[
-                            f"Category: {p.category} • {p.sub_type}",
-                            f"Backed by {len(p.supporting_documents or [])} validation/technical documents",
+                            f"หมวดหมู่: {p.category} • {p.sub_type}",
+                            f"เอกสารอ้างอิง/Validation รองรับ {len(prod_docs)} รายการ",
+                            f"แนะนำพ่วงขายคู่กับสินค้าในกลุ่มเดียวกัน {len(prod_cs)} รายการ",
                         ],
+                        supporting_documents=prod_docs,
+                        cross_sell_products=prod_cs,
                     )
                 )
 
@@ -313,43 +391,50 @@ async def generate_product_suggestions(
     req: AISuggestRequest, products: List[Product]
 ) -> AISuggestResponse:
     """
-    - Quick Search ('quick'): Uses the Instant Smart Catalog Engine (<50ms) for immediate results.
-    - Detailed Search ('detailed'): Performs deep AI Inference via OpenRouter with fast models
-      and syncs product images & metadata with the database catalog.
+    - Quick Search ('quick'): Uses the Instant Smart Catalog Engine for immediate results.
+    - Detailed Search ('detailed'): Performs AI Inference and formats conversational output.
     """
     resolved_model = MODEL_MAP.get(req.model, req.model)
     if resolved_model == "Auto (default)":
         resolved_model = settings.DEFAULT_AI_MODEL
 
-    if not products:
+    filtered_products = _filter_by_taxonomy(products, req)
+
+    if not filtered_products:
         return AISuggestResponse(
             query=req.query,
             search_mode=req.search_mode,
             model_used=resolved_model,
             inference_source="empty_catalog",
-            executive_summary="No products are currently in the catalog. Please add products in the Manage Products tab.",
+            executive_summary="ไม่พบสินค้าที่ตรงกับตัวกรองหรือคำค้นหาในขณะนี้ กรุณาลองเปลี่ยนหมวดหมู่หรือคำค้นหาใหม่ครับ",
+            closing_note="",
             suggested_products=[],
             supporting_documents=[],
             cross_selling=[],
             created_at=datetime.now(timezone.utc),
         )
 
-    # 1. QUICK SEARCH MODE -> Instant response (<50ms) without waiting for external LLM latency
     if req.search_mode == "quick":
         return build_fallback_suggestion(
-            req, products, "Instant Catalog Matcher ⚡", inference_source="instant_quick_search"
+            req,
+            filtered_products,
+            "Quick Catalog Search",
+            inference_source="instant_quick_search",
         )
 
-    # 2. DETAILED SEARCH MODE -> Deep OpenRouter LLM Analysis
     api_key = (settings.OPENROUTER_API_KEY or "").strip()
     if not api_key:
         return build_fallback_suggestion(
-            req, products, resolved_model, inference_source="openrouter_compatible_engine"
+            req,
+            filtered_products,
+            resolved_model,
+            inference_source="openrouter_compatible_engine",
         )
 
-    # Pre-rank products so LLM focuses on top relevant candidates and responds in ~2-3 seconds
     ranked_products = sorted(
-        products, key=lambda p: _score_product_match(req.query, p), reverse=True
+        filtered_products,
+        key=lambda p: _score_product_match(req.query, p),
+        reverse=True,
     )
     top_candidates = ranked_products[:4]
 
@@ -368,18 +453,20 @@ async def generate_product_suggestions(
 
     system_prompt = (
         "You are an expert AI Sales Support Specialist at Fusion Advantec. "
-        "Analyze the customer's detailed requirements against our Product Catalog JSON. "
-        "Respond in the same language as the customer's query (if Thai is present, write in natural professional Thai; otherwise English). "
-        "Return ONLY a valid JSON object (no markdown fences) matching this exact schema:\n"
+        "Analyze the customer's requirements against our Product Catalog JSON. "
+        "Respond in natural, polite Thai (starting with 'เข้าใจแล้วครับ 😊 ...'). "
+        "Do NOT use markdown bold asterisks (**). "
+        "Return ONLY a valid JSON object matching this exact schema:\n"
         "{\n"
-        '  "executive_summary": "Detailed 2-3 sentence executive sales pitch tailored to the customer requirement",\n'
+        '  "executive_summary": "เข้าใจแล้วครับ 😊 ต้องการ... รุ่นที่น่าพิจารณามีดังนี้",\n'
+        '  "closing_note": "เรื่องเอกสารประกอบและการต่อยอด: คำแนะนำเพิ่มเติมเรื่อง Validation Report และสินค้าพ่วงขาย",\n'
         '  "suggested_products": [\n'
         "    {\n"
         '      "product_id": 1,\n'
         '      "name": "Exact Product Name from catalog",\n'
         '      "match_score": 95,\n'
-        '      "reasoning": "In-depth technical and sales explanation of why this product fits",\n'
-        '      "key_benefits": ["Specific Benefit 1", "Specific Benefit 2", "Specific Benefit 3"]\n'
+        '      "reasoning": "สโลแกนสั้นๆ 1 บรรทัดว่าทำไมรุ่นนี้ถึงตรงความต้องการ",\n'
+        '      "key_benefits": ["จุดเด่นที่ 1", "จุดเด่นที่ 2", "จุดเด่นที่ 3"]\n'
         "    }\n"
         "  ]\n"
         "}"
@@ -402,7 +489,7 @@ async def generate_product_suggestions(
         if fb_m not in models_to_try:
             models_to_try.append(fb_m)
 
-    async with httpx.AsyncClient(timeout=9.0) as client:
+    async with httpx.AsyncClient(timeout=8.0) as client:
         for candidate_model in models_to_try[:2]:
             payload = {
                 "model": candidate_model,
@@ -434,22 +521,28 @@ async def generate_product_suggestions(
 
                 parsed = json.loads(raw_content)
                 synced_products = _sync_llm_products_with_db(
-                    parsed.get("suggested_products", []), products, req.query
+                    parsed.get("suggested_products", []),
+                    filtered_products,
+                    req.query,
                 )
 
                 if not synced_products:
                     break
 
-                # Build rich supporting documents and cross-selling from the matched DB products
-                fallback_res = build_fallback_suggestion(req, products, candidate_model)
+                fallback_res = build_fallback_suggestion(
+                    req, filtered_products, candidate_model
+                )
 
                 return AISuggestResponse(
                     query=req.query,
                     search_mode=req.search_mode,
                     model_used=candidate_model,
                     inference_source="openrouter",
-                    executive_summary=parsed.get(
-                        "executive_summary", fallback_res.executive_summary
+                    executive_summary=_clean_text(
+                        parsed.get("executive_summary", fallback_res.executive_summary)
+                    ),
+                    closing_note=_clean_text(
+                        parsed.get("closing_note", fallback_res.closing_note)
                     ),
                     suggested_products=synced_products[:5],
                     supporting_documents=fallback_res.supporting_documents[:6],
@@ -460,5 +553,8 @@ async def generate_product_suggestions(
                 continue
 
     return build_fallback_suggestion(
-        req, products, resolved_model, inference_source="openrouter_compatible_engine"
+        req,
+        filtered_products,
+        resolved_model,
+        inference_source="openrouter_compatible_engine",
     )

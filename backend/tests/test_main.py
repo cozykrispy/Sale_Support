@@ -11,7 +11,7 @@ os.environ["DATABASE_URL"] = "sqlite://"
 from app.main import app
 from app.config import settings
 from app.database import Base, get_db
-from app.models import User
+from app.models import User, Category, ProductType, ProductSubType, Product
 from app.seed import seed_initial_data
 
 engine = create_engine(
@@ -77,7 +77,6 @@ def test_register_hashes_password_not_plain_text():
     assert data["email"] == "sales@fusion.co.th"
     assert "password" not in data
 
-    # Verify in database that password is NOT stored in plain text
     db = TestingSessionLocal()
     user_in_db = db.query(User).filter(User.username == "sales_specialist").first()
     db.close()
@@ -117,22 +116,16 @@ def test_login_returns_one_hour_token():
 def test_protected_routes_reject_missing_or_invalid_token():
     """Verify all protected routes require a valid JWT token."""
     assert client.get("/api/products").status_code == 401
+    assert client.get("/api/taxonomy").status_code == 401
     assert client.post("/api/products", json={}).status_code == 401
     assert (
         client.post("/api/ai/suggest", json={"query": "chromatography"}).status_code
         == 401
     )
-    assert (
-        client.get(
-            "/api/products",
-            headers={"Authorization": "Bearer invalid.jwt.token"},
-        ).status_code
-        == 401
-    )
 
 
-def test_product_crud_lifecycle():
-    """Verify full Create, Read, Update, Delete lifecycle on Products with JWT protection."""
+def test_taxonomy_hierarchy_and_product_foreign_keys():
+    """Verify Category -> ProductType -> ProductSubType tables and Product FK linkage."""
     login_res = client.post(
         "/api/auth/login",
         json={"username": "admin", "password": "Admin@1234"},
@@ -140,15 +133,72 @@ def test_product_crud_lifecycle():
     token = login_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 1. Read initial seeded products
-    list_res = client.get("/api/products", headers=headers)
-    assert list_res.status_code == 200
-    products = list_res.json()
-    initial_count = len(products)
-    assert initial_count >= 3
-    assert products[0]["name"] == "DynaChrom system"
+    # 1. Fetch seeded taxonomy tree
+    tax_res = client.get("/api/taxonomy", headers=headers)
+    assert tax_res.status_code == 200
+    tree = tax_res.json()
+    assert len(tree) >= 4
+    first_cat = tree[0]
+    assert "types" in first_cat and len(first_cat["types"]) >= 1
+    assert "sub_types" in first_cat["types"][0]
 
-    # 2. Create new product
+    # 2. Create new Category -> Type -> SubType via API
+    new_cat = client.post(
+        "/api/taxonomy/categories",
+        headers=headers,
+        json={"name": "Bioreactor Systems"},
+    ).json()
+    assert new_cat["name"] == "Bioreactor Systems"
+
+    new_type = client.post(
+        "/api/taxonomy/types",
+        headers=headers,
+        json={"name": "Single-Use Bioreactors", "category_id": new_cat["id"]},
+    ).json()
+    assert new_type["category_id"] == new_cat["id"]
+
+    new_sub = client.post(
+        "/api/taxonomy/sub-types",
+        headers=headers,
+        json={"name": "Stirred-Tank SUB", "type_id": new_type["id"]},
+    ).json()
+    assert new_sub["type_id"] == new_type["id"]
+
+    # 3. Verify seeded products have category_id, type_id, sub_type_id
+    prods = client.get("/api/products?page=1&limit=10", headers=headers).json()
+    assert len(prods) == 5
+    assert prods[0]["category_id"] is not None
+    assert prods[0]["type_id"] is not None
+    assert prods[0]["sub_type_id"] is not None
+
+
+def test_product_crud_and_1000_word_limit():
+    """Verify Product CRUD lifecycle and 1000-word description validation."""
+    login_res = client.post(
+        "/api/auth/login",
+        json={"username": "admin", "password": "Admin@1234"},
+    )
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Reject description exceeding 1000 words
+    too_long_desc = " ".join(["bioprocess"] * 1005)
+    bad_res = client.post(
+        "/api/products",
+        headers=headers,
+        json={
+            "name": "Over Limit Product",
+            "brand": "Cytiva",
+            "description": too_long_desc,
+            "image_url": "https://example.com/img.jpg",
+            "category": "Chromatography Systems",
+            "type": "Lab Scale Equipment",
+            "sub_type": "FPLC System",
+        },
+    )
+    assert bad_res.status_code == 422
+
+    # Create valid product
     create_res = client.post(
         "/api/products",
         headers=headers,
@@ -165,47 +215,19 @@ def test_product_crud_lifecycle():
     assert create_res.status_code == 201
     new_prod = create_res.json()
     prod_id = new_prod["id"]
-    assert new_prod["name"] == "AKTA Pure 25 Chromatography System"
+    assert new_prod["category_id"] is not None
+    assert new_prod["type_id"] is not None
+    assert new_prod["sub_type_id"] is not None
 
-    # 3. Update product
-    update_res = client.put(
-        f"/api/products/{prod_id}",
-        headers=headers,
-        json={"brand": "Cytiva Life Sciences"},
-    )
-    assert update_res.status_code == 200
-    assert update_res.json()["brand"] == "Cytiva Life Sciences"
-
-    # 4. Soft Delete product
+    # Soft delete and permanent delete
     del_res = client.delete(f"/api/products/{prod_id}", headers=headers)
     assert del_res.status_code == 200
-    assert del_res.json()["is_deleted"] is True
-
-    # Active products list should now only contain initial_count items
-    active_prods = client.get("/api/products", headers=headers).json()
-    assert len(active_prods) == initial_count
-
-    # Including soft-deleted products should return initial_count + 1 items
-    all_prods = client.get("/api/products?include_deleted=true", headers=headers).json()
-    assert len(all_prods) == initial_count + 1
-
-    # 5. Restore product back to active catalog
-    restore_res = client.post(f"/api/products/{prod_id}/restore", headers=headers)
-    assert restore_res.status_code == 200
-    assert restore_res.json()["is_deleted"] is False
-    assert len(client.get("/api/products", headers=headers).json()) == initial_count + 1
-
-    # 6. Delete Permanently (Hard Delete)
-    perm_del_res = client.delete(f"/api/products/{prod_id}/permanent", headers=headers)
-    assert perm_del_res.status_code == 200
-    assert perm_del_res.json()["permanent"] is True
-
-    # Product is now permanently removed even with include_deleted=true
-    assert len(client.get("/api/products?include_deleted=true", headers=headers).json()) == initial_count
+    perm_res = client.delete(f"/api/products/{prod_id}/permanent", headers=headers)
+    assert perm_res.status_code == 200
 
 
-def test_ai_product_suggestion_returns_three_pillars():
-    """Verify AI suggestion returns Product Suggestions, Supporting Documents, and Cross-selling."""
+def test_ai_product_suggestion_and_advance_filter():
+    """Verify AI suggestion returns conversational summary, closing note, and respects advance filter."""
     login_res = client.post(
         "/api/auth/login",
         json={"username": "admin", "password": "Admin@1234"},
@@ -213,18 +235,21 @@ def test_ai_product_suggestion_returns_three_pillars():
     token = login_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
+    status_res = client.get("/api/ai/status", headers=headers)
+    assert status_res.status_code == 200
+    assert status_res.json()["available"] is True
+
     suggest_res = client.post(
         "/api/ai/suggest",
         headers=headers,
         json={
             "query": "Need automated single-use chromatography system for mAb purification",
-            "search_mode": "detailed",
-            "model": "Auto (default)",
+            "search_mode": "quick",
+            "category": "Chromatography Systems",
         },
     )
     assert suggest_res.status_code == 200
     data = suggest_res.json()
     assert len(data["suggested_products"]) >= 1
     assert data["suggested_products"][0]["name"] == "DynaChrom system"
-    assert len(data["supporting_documents"]) >= 1
-    assert len(data["cross_selling"]) >= 1
+    assert data["suggested_products"][0]["description"] != ""

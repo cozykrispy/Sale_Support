@@ -17,16 +17,16 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("sales_hub_token")?.value;
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
 
-  // Protect main hub route: redirect unauthenticated requests to /login
+  // Protect routes: redirect unauthenticated requests to /login
   if (!token && !isPublicPath) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users away from /login or /register to /
-  if (token && isPublicPath) {
-    const hubUrl = new URL("/", request.url);
-    return NextResponse.redirect(hubUrl);
+  // Redirect authenticated users away from /login, /register, or / to /home
+  if (token && (isPublicPath || pathname === "/")) {
+    const homeUrl = new URL("/home", request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();

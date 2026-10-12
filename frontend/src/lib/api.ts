@@ -19,6 +19,28 @@ export interface AuthTokenResponse {
   user: UserProfile;
 }
 
+export interface TaxonomySubType {
+  id: number;
+  name: string;
+  type_id: number;
+  created_at: string;
+}
+
+export interface TaxonomyType {
+  id: number;
+  name: string;
+  category_id: number;
+  sub_types: TaxonomySubType[];
+  created_at: string;
+}
+
+export interface TaxonomyCategory {
+  id: number;
+  name: string;
+  types: TaxonomyType[];
+  created_at: string;
+}
+
 export interface SupportingDoc {
   title: string;
   doc_type: string;
@@ -41,6 +63,9 @@ export interface Product {
   category: string;
   type: string;
   sub_type: string;
+  category_id?: number;
+  type_id?: number;
+  sub_type_id?: number;
   status?: "active" | "inactive" | "archived";
   supporting_documents?: SupportingDoc[];
   cross_sell_products?: CrossSellItem[];
@@ -58,20 +83,28 @@ export interface ProductCreatePayload {
   category: string;
   type: string;
   sub_type: string;
-  status?: "active" | "inactive" | "archived";
+  category_id?: number;
+  type_id?: number;
+  sub_type_id?: number;
 }
 
 export interface SuggestedProductResult {
   product_id?: number;
   name: string;
   brand: string;
+  description?: string;
   category: string;
   type: string;
   sub_type: string;
+  category_id?: number;
+  type_id?: number;
+  sub_type_id?: number;
   image_url: string;
   match_score: number;
   reasoning: string;
   key_benefits: string[];
+  supporting_documents?: SupportingDoc[];
+  cross_sell_products?: CrossSellItem[];
 }
 
 export interface SupportingDocumentResult {
@@ -95,6 +128,7 @@ export interface AISuggestResponse {
   model_used: string;
   inference_source: string;
   executive_summary: string;
+  closing_note?: string;
   suggested_products: SuggestedProductResult[];
   supporting_documents: SupportingDocumentResult[];
   cross_selling: CrossSellingResult[];
@@ -117,7 +151,49 @@ export interface AnalyticsData {
   total_cross_sell_links: number;
   total_archived?: number;
   categories_breakdown: { category: string; count: number }[];
+  types_breakdown?: { type: string; category: string; count: number }[];
+  sub_types_breakdown?: { sub_type: string; type: string; count: number }[];
   brands_breakdown: { brand: string; count: number }[];
+  search_modes_breakdown?: { mode: string; count: number }[];
+  category_coverage?: {
+    category: string;
+    skus: number;
+    docs: number;
+    cross_sells: number;
+  }[];
+}
+
+// High-craft Color Capsule helper for Categories, Types, Sub-Types, and Brands
+const CAPSULE_PALETTES = [
+  "bg-blue-50/90 text-blue-700 border-blue-200/80",
+  "bg-indigo-50/90 text-indigo-700 border-indigo-200/80",
+  "bg-emerald-50/90 text-emerald-700 border-emerald-200/80",
+  "bg-amber-50/90 text-amber-800 border-amber-200/80",
+  "bg-rose-50/90 text-rose-700 border-rose-200/80",
+  "bg-cyan-50/90 text-cyan-800 border-cyan-200/80",
+  "bg-violet-50/90 text-violet-700 border-violet-200/80",
+  "bg-teal-50/90 text-teal-800 border-teal-200/80",
+];
+
+export function getCapsuleStyle(
+  label: string,
+  kind: "category" | "type" | "sub_type" | "brand" = "category"
+): string {
+  if (!label) return "bg-zinc-100 text-zinc-700 border-zinc-200/80";
+  if (kind === "brand") {
+    return "bg-zinc-900 text-white border-zinc-800";
+  }
+  if (kind === "type") {
+    return "bg-violet-50/80 text-violet-700 border-violet-200/75";
+  }
+  if (kind === "sub_type") {
+    return "bg-emerald-50/80 text-emerald-700 border-emerald-200/75";
+  }
+  let hash = 0;
+  for (let i = 0; i < label.length; i++) {
+    hash = label.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return CAPSULE_PALETTES[Math.abs(hash) % CAPSULE_PALETTES.length];
 }
 
 const TOKEN_KEY = "sales_hub_token";
@@ -129,7 +205,6 @@ export function saveAuthSession(data: AuthTokenResponse): void {
   localStorage.setItem(TOKEN_KEY, data.access_token);
   localStorage.setItem(EXPIRES_KEY, data.expires_at);
   localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-  // Set cookie with max-age=3600 (1 hour) so Next.js middleware also protects routes
   document.cookie = `${TOKEN_KEY}=${data.access_token}; path=/; max-age=${data.expires_in}; SameSite=Lax`;
 }
 
@@ -191,7 +266,10 @@ export async function apiFetch<T>(
 
   if (response.status === 401) {
     clearAuthSession();
-    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+    if (
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/login")
+    ) {
       window.location.href = "/login";
     }
     const errBody = await response.json().catch(() => ({}));

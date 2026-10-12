@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Lock, User, AlertCircle, Clock, ArrowRight, Terminal } from "lucide-react";
+import { Lock, User, AlertCircle, ArrowRight, Terminal } from "lucide-react";
 import { API_BASE_URL, AuthTokenResponse, saveAuthSession } from "@/lib/api";
 
 export default function LoginPage() {
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
       const data: AuthTokenResponse = await response.json();
       saveAuthSession(data);
-      router.push("/");
+      router.push("/home");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Authentication failed");
@@ -49,7 +49,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-[#FAFAFA] bg-subtle-grid px-4 py-12">
       <div className="w-full max-w-[420px]">
-        {/* Brand Top Header */}
+        {/* Brand Top Header (Removed AUTH READY badge) */}
         <div className="flex items-center justify-between mb-6 px-1">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-md bg-zinc-950 text-white flex items-center justify-center font-mono text-xs font-bold tracking-tighter">
@@ -65,10 +65,14 @@ export default function LoginPage() {
               </span>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 bg-white px-2.5 py-1 rounded-md border border-zinc-200/90 shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            AUTH READY
-          </span>
+          <button
+            type="button"
+            onClick={fillDemoUser}
+            className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50/80 border border-blue-200/70 px-2.5 py-1 rounded-full transition"
+          >
+            <Terminal className="w-3 h-3" />
+            Fill Demo
+          </button>
         </div>
 
         {/* Main Auth Surface */}
@@ -133,21 +137,6 @@ export default function LoginPage() {
                   className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-zinc-50/60 border border-zinc-200 text-sm text-zinc-950 placeholder:text-zinc-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-zinc-500 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-200/80">
-              <span className="flex items-center gap-1.5 font-mono text-[11px]">
-                <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                JWT TTL: <strong className="text-zinc-800">3600s (1h)</strong>
-              </span>
-              <button
-                type="button"
-                onClick={fillDemoUser}
-                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition"
-              >
-                <Terminal className="w-3 h-3" />
-                Fill Demo
-              </button>
             </div>
 
             <button
