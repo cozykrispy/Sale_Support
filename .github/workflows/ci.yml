@@ -83,6 +83,9 @@ jobs:
     name: Docker Build, Playwright E2E & OWASP ZAP DAST
     runs-on: ubuntu-latest
     needs: [backend-test-and-security]
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -131,6 +134,7 @@ jobs:
           target: "http://localhost:3000"
           cmd_options: "-a -j"
           fail_action: false
+          allow_issue_writing: false
 
       - name: Tear down Docker containers
         if: always()
