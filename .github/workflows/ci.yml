@@ -129,7 +129,7 @@ jobs:
         run: npx playwright test
 
       - name: Run DAST Scan (OWASP ZAP Baseline against Backend & Frontend)
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "http://localhost:3000"
           cmd_options: "-a -j"
