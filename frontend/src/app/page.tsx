@@ -142,6 +142,10 @@ export default function SalesSupportHubPage() {
   };
 
   const handleOpenUsersModal = async () => {
+    if (user?.username !== "admin") {
+      showToast("Access Restricted: Administrator role required to view team accounts.");
+      return;
+    }
     try {
       const users = await apiFetch<UserProfile[]>("/api/users");
       setUsersList(users);
@@ -157,6 +161,10 @@ export default function SalesSupportHubPage() {
     targetUserId: number,
     newStatus: "active" | "inactive" | "archived"
   ) => {
+    if (user?.username !== "admin") {
+      showToast("Access Restricted: Administrator role required to change account status.");
+      return;
+    }
     try {
       await apiFetch<UserProfile>(`/api/users/${targetUserId}/status`, {
         method: "PATCH",

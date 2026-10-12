@@ -209,7 +209,12 @@ def list_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """List team members and user accounts with lifecycle statuses (Requires valid JWT Token)."""
+    """List team members and user accounts with lifecycle statuses (Requires Administrator privileges)."""
+    if current_user.username != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access restricted: Administrator role required to manage team accounts.",
+        )
     query = db.query(User)
     if not include_archived:
         query = query.filter(User.is_deleted == False)
@@ -227,7 +232,12 @@ def update_user_status(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Update user account status ('active', 'inactive', 'archived') to safely prevent login without deleting audit history."""
+    """Update user account status ('active', 'inactive', 'archived') to safely prevent login (Requires Administrator privileges)."""
+    if current_user.username != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access restricted: Administrator role required to manage team accounts.",
+        )
     target_user = db.query(User).filter(User.id == user_id).first()
     if not target_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

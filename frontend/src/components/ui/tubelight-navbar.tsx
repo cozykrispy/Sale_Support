@@ -67,8 +67,8 @@ export function TubelightNavbar({
   ];
 
   return (
-    <header className="sticky top-0 z-50 pt-2 sm:pt-3 pb-2 px-2.5 sm:px-6 pointer-events-none">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3 pointer-events-auto bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] rounded-full px-2.5 sm:px-5 py-1.5 sm:py-2 transition-all">
+    <header className="sticky top-0 z-50 pt-2 sm:pt-3 pb-2 px-3 sm:px-6 pointer-events-none">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3 pointer-events-auto bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] rounded-full px-3.5 sm:px-5 py-1.5 sm:py-2 transition-all">
         {/* Left: Clean Minimal Brand Identity */}
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-b from-white to-slate-50 border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex items-center justify-center shrink-0">
@@ -125,7 +125,8 @@ export function TubelightNavbar({
                     isActive ? "text-slate-900" : "text-slate-400"
                   }`}
                 />
-                <span className="whitespace-nowrap">{item.label}</span>
+                <span className="hidden md:inline whitespace-nowrap">{item.label}</span>
+                <span className="inline md:hidden whitespace-nowrap">{item.shortLabel}</span>
                 {typeof item.badge === "number" && (
                   <span
                     className={`inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[10px] font-mono font-semibold transition-colors duration-150 ${
@@ -145,7 +146,7 @@ export function TubelightNavbar({
         {/* Right: Clean White Session & User Pill Cluster */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* JWT Status Pill (Visible for E2E & Session Verification) */}
-          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-emerald-50/70 border border-emerald-200/60 text-[11px] font-medium text-emerald-800">
+          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-emerald-50/70 border border-emerald-200/60 text-[11px] font-medium text-emerald-800 shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span className="inline">Protected Route (JWT Active)</span>
             {expiresAt && (
@@ -159,21 +160,23 @@ export function TubelightNavbar({
             )}
           </div>
 
-          {/* Team Accounts Trigger */}
-          <button
-            type="button"
-            onClick={onOpenUsersModal}
-            title="Team Accounts"
-            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-medium text-xs transition shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
-          >
-            <Users className="w-3.5 h-3.5 text-slate-500" />
-            <span className="hidden sm:inline">Team</span>
-          </button>
+          {/* Team Accounts Trigger (Admin Only for Governance) */}
+          {user?.username === "admin" && (
+            <button
+              type="button"
+              onClick={onOpenUsersModal}
+              title="Team Accounts"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 font-medium text-xs transition shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            >
+              <Users className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Team</span>
+            </button>
+          )}
 
           {/* Unified User & Logout Capsule */}
-          <div className="inline-flex items-center gap-1 pl-1 sm:pl-1.5 pr-1 py-1 rounded-full bg-slate-100/80 border border-slate-200/70">
+          <div className="inline-flex items-center gap-1.5 pl-1.5 sm:pl-2 pr-1.5 py-1 rounded-full bg-slate-100/80 border border-slate-200/70">
             {user && (
-              <div className="flex items-center gap-1 sm:gap-1.5 sm:pr-1.5">
+              <div className="flex items-center gap-1.5 pr-1">
                 <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white border border-slate-200/90 text-slate-800 font-semibold text-[10px] flex items-center justify-center uppercase shadow-2xs">
                   {user.username.slice(0, 2)}
                 </span>
@@ -187,7 +190,7 @@ export function TubelightNavbar({
               onClick={onLogout}
               data-testid="logout-button"
               title="Sign out"
-              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200/70 hover:border-rose-200 text-xs font-medium transition shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200/70 hover:border-rose-200 text-xs font-medium transition shadow-2xs"
             >
               <LogOut className="w-3 h-3" />
               <span className="hidden md:inline">Logout</span>
